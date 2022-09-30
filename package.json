@@ -10,14 +10,14 @@
     "umd": "./dist/owid-demo.umd.min.js",
     "default": "./dist/index.js"
   },
-  "name": "@elaval/owid-demo",
+  "name": "@elaval/owid-vis-poc",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "rimraf dist && tsc && rollup -c rollup.config.js",
     "publish_": "npm publish --access=public",
     "version_": "npm version patch"
   },
-  "version": "0.3.4",
+  "version": "0.1.0",
   "devDependencies": {
     "@open-wc/building-rollup": "^2.0.2",
     "@rollup/plugin-commonjs": "^19.0.2",
