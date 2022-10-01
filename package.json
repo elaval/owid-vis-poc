@@ -3,11 +3,11 @@
   "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.js",
-  "jsdelivr": "dist/owid-demo.umd.min.js",
-  "unpkg": "dist/owid-demo.umd.min.js",
+  "jsdelivr": "dist/owid-vis-poc.umd.min.js",
+  "unpkg": "dist/owid-vis-poc.umd.min.js",
   "exports": {
     "mocha": "./src/index.js",
-    "umd": "./dist/owid-demo.umd.min.js",
+    "umd": "./dist/owid-vis-poc.umd.min.js",
     "default": "./dist/index.js"
   },
   "name": "@elaval/owid-vis-poc",
