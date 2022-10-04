@@ -1,0 +1,5 @@
+/node_modules
+.vscode/tags
+.DS_Store
+.tscache
+.env
