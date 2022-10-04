@@ -1,50 +1,74 @@
-# POC for modularizing OWID chart components
+# A Javascript tool for building visualizations with data from Our World in Data 
+## A Proof of concept
 
 Our World in Data (OWID) is an initiative that aims at **research and data to make progress against the world’s largest problems**.  They collect and mantain hundreds of datasets from worlwide public data that is transformed into meaningful information via evidence based articles and data visualisations.
 
-They currently have a powerful visualization tool - OWID Grapher - that has been designed to easily create, and publish, visualization information on top of new datasets.  The tool is great, but it is tightly coupled to the backend (Mysql queries to retreive data, within a React website).
+They currently have a powerful visualization tool - OWID Grapher - that has been designed to easily create, and publish, visualization information on top of their datasets.  Grapher is a great tool, but it si possible to complement it with new depelopments.
 
-This repository is a POC with some initial ideas to think about alternative ways to architect and decouple the visualization, page and data components.
+This respository contains a very simple prototype that I developed to play with some ideas.  I imagine an OWID Javascript charting tool that has the following features:
 
-## Step 1 - decouple data from frontend code
-Instead of making direct queries to the database (via SQL) as an core part of the visualization code, we can decouple the data fro the presentation layer.
+- Is decoupled from the database (can consume data that is provided via Javascript without direct connection to the database)
+- Has an architecture and code that is easy to understand, so that other developers can contribute and / or expand its functionalities.
+- It is aware of the characteristics of OWID data.  This is not "yeat another charting tool" but a tool that works well with data that is organised with time (years / dates) and gographical entities (countries, continents, grouops of countries) with relevant values metrics (which might have specific units and formatting conventions)
+- It is easy to intergrate in other systems.
 
-Data can be retreived in a flexible way via APIS (or standalone Parquet datafiles) that could be retreived and managed via Javascript on the client.
+The core of the tool is to build visualizations that could be embedded in other systems (e.g. blogs or notebooks) or used as components for other developments.  These visualizations will usually be used within a standard "wrapper" that would handle common functionalities (display sources, export data and images, filters, ...), but this wrapper would be a separate development that consumes the core visualizations.
 
-OWID currently provide easy access to data & metadata via api calls such as:
+## Characteristics of OWID data
 
-https://ourworldindata.org/grapher/data/variables/metadata/${variableId}.json
+Current OWID Grappher consumes data from a MySQL database that is publicly distributed.  When we look at the data model, we can identify some key concepts 
 
-https://ourworldindata.org/grapher/data/variables/data/${variableId}.json
 
-Data is organized on hundreds of datasets identified by a variable Id (e.g. 1454)
+![owid data model](https://user-images.githubusercontent.com/68602/193713247-772bf1d0-1610-4d5b-ad0a-8703cc15493d.png)
 
-## Step 2 - modular visualization components
-Instead of a visualization tool that is tightly coupled to a specific front-end architecture and technology, it is possible to build a library of reusable components that are specifically tailored to the type of visualization and data that OWID wants to make accesible.
 
-If we have a sound architectural foundation, OWID vis components could be cretaed by a core team at OWID but highly enriched by an open source community.  These tools could be available for developers (and projects) distributed around the world to easily access and present "data stories".
+* Datasets: are associated to a specific source and can contain a collection of *variables* (metrics)
+* Tags: descriptors that are associates to **datasets** (e.g. "Population Growth").  Tags can have tag parents which allows to build a hierarchical structure of tags (e.g. "Population Growth" is a child of "Population Growth & Vital Statistics")
+* Variables: multiple variables can be associated to a **dataset**.  Each variable (e.g. "Fertility Rate") has a unit (e.g. "children per woman") and is associated to a table contains a collection of **data-values** that links values with time (year) and entities (countries, continents, ...).
+* Entities have a name (e.g. "United Kingdom") and id (e.g. 1) and a code (e.g. GBR)
 
-This repository is an extremely basic POC of this concept.  We create a visualization componnet that can be distributed as a javascript package (technically an npm package) that could be reused in Javascript code or in platforms such as observable explorer.
+Once the user has selected a domain and dataset (e.g. "World Development Indicators - Economic Policy & Debt") and a specific variable from that dataset  (e.g. "GDP per capita, PPP (constant 2011 international $)") then we are dealing with data values that can be exemplefied by the following table:
 
-Here you can access a very basic demo (a plain html file stored in a file storage service) that loads the visualization component, retreived the data from OWID Backend and renders a trend chart.
+<img width="462" alt="image" src="https://user-images.githubusercontent.com/68602/193715399-22af89ec-572e-4cbd-a887-9872beaf4108.png">
 
-<a href="https://elaval.s3.amazonaws.com/owid/basicDemo/index.html" target="_blank">https://elaval.s3.amazonaws.com/owid/basicDemo/index.html</a>
+The key dimensions for our visualization purposes are
+* **entity name** (categorical)
+* **year** (ordinal / time) 
 
-The following link shows how this component can be reused in www.observablehq.com.  This opens the door for using OWID component in platforms that are flexible for quick exploration and publication of data:
+And we have a numeric variable ("**value**") with ranges, units and format that will depend on the specific variable (%, people, $, ...)
 
-<a href="https://observablehq.com/@elaval/owid-visualisation-components-poc" target="_blank">https://observablehq.com/@elaval/owid-visualisation-components-poc</a>
+The most common messages that we would like to communicate in our visualizations are:
 
-## Future steps - bring the queries to the client
-With the posibility to have compact information stored in formats such as Parquet and lightweight databases that can be managed directly on the browser (such as DuckDB), it is possible to rethink the role of the backend and fronent in relation to datamanagement.
+- Trends:  how the metric evolves on time for a specific entity, and how the trend from different entities can be compared (line charts)
+- Rankings: the relative size and order of the metrics for different entities (bar charts)
+- Geography: how is the relative size of the metric distributed in the world (maps)
 
-With datasets that are relatively stable (many with yearly updates), it is possibe to distribute the data as single or grouped datasets with no server code (e.g. blob storage / distribution services or even public access github repositories) and build certain level of data management directly on the client (meaning the users web browser). This is an avenue worth exploring.
 
-## Aim - focus data visualization efforts on communication and user experience, not on web page development 
-When we work on datavisualization we can spend an important amount of time on details that help the user to better understand the data (and the stories hidden in the data).  This should be an important focus for data visualization.
+## Anatomy of an OWID visualization
 
-An important amount of time for quicly exploring data patterns, anomalies, differences and similarities ... for teams to "explore" the data. And then, once we understand the key aspects of a specific info domain, polish the presentation in order to be able to communicate the important messages, to focus on the right content (and not on fancy distractor).
+A visualization is a conceptual entity that usually contains the following elements:
+- A graphical repesentation in a 2D plane that takes advantage of visual variables (size, position, shape , color) to represent magnitudes, trends, relationships, ...
+- Axis that communicate the relationship between domain values (e.g. age, income) and phisical ranges in the chart (vertical / horizontal position)
+- Legends that map colors to categorical variables (e.g. countries)
+- Titles / subtitles
+- Annotations
+- Tooltips
 
-If we get the right architecture (and tools) the effort can be concenbtrated on the important topics that add value.
+In contrete "browser" terms, the visualization is represented as a DOM element (e.g. a <div>) that can be embedded in a html page. Usualli visualizations are created with <svg> elements that offer great flexibility to represent (and manage) visual representations inside an html page.
+  
+A <svg> element can contain diffrerent visual elements (circles, rectangles, linespaths, text) that are located in a x/y coordinate system within the <svg> container.  We can also insert a <g> container in the <svg> element (or inside another <g> element) which provides a local coordinate system (a rect within a <g> has a positiomn relative to its parent).
+  
+In general our visualizations will have the following framework:
+  
+  <img width="1443" alt="image" src="https://user-images.githubusercontent.com/68602/193721282-f277048e-c751-4173-abf6-8137528e4e9c.png">
+  
+Our chart container is a <div> element that can be embedded in any "html wrapper" that will contain the visualization.
+
+The <svg> element will define the absolute dimensions of the visualization (height & width) and will contain a main <g> container which is ultimately the elemengt where we will *draw* our visual representations.
+  
+Our <g> container usually has *margins* that define space for axis, labels and titles that are placed out beyond the boundaries of our main visualization.
+  
+  
 
 
 
