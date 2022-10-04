@@ -1,11 +1,11 @@
-// @elaval/owid-vis-poc v0.1.0 Copyright 
+// @elaval/owid-vis-poc v0.1.1 Copyright 
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
-(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global["owid-demo"] = global["owid-demo"] || {}));
+(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.owidVis = global.owidVis || {}));
 })(this, (function (exports) { 'use strict';
 
-var version = "0.1.0";
+var version = "0.1.1";
 
 function ascending$1(a, b) {
   return a == null || b == null ? NaN : a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -22568,14 +22568,16 @@ function OWIDPlot(data, options) {
         return null;
     }
 }
-function OWIDPlotBase(data, options) {
-    options && options.type || "trendChart";
-    let chart = new OWIDBaseChart(data, options);
-    return chart.render();
+function trendChart(data, options) {
+    return new OWIDTrendChart(data, options);
+}
+function barChart(data, options) {
+    return new OWIDBarChart(data, options);
 }
 
 exports.OWIDPlot = OWIDPlot;
-exports.OWIDPlotBase = OWIDPlotBase;
+exports.barChart = barChart;
+exports.trendChart = trendChart;
 exports.version = version;
 
 Object.defineProperty(exports, '__esModule', { value: true });

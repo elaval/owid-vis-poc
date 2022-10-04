@@ -35,7 +35,7 @@ export default [
     ...config,
     output: {
       ...config.output,
-      name: "owid-demo",
+      name: "owidVis",
       format: "umd",
       extend: true,
       file: `dist/${filename}.umd.js`,
@@ -47,7 +47,7 @@ export default [
     ...config,
     output: {
       ...config.output,
-      name: "owid-demo",
+      name: "owidVis",
       format: "umd",
       extend: true,
       file: `dist/${filename}.umd.min.js`,

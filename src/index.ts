@@ -17,12 +17,12 @@ export function OWIDPlot(data: any, options: { type: any; }): any {
 
 }
 
-export function OWIDPlotBase(data: any, options: { type: any; }): any {
-    const type = options && options.type || "trendChart"
-
-    let chart = new OWIDBaseChart(data, options);
-    return chart.render();
-
-        
-
+export function trendChart(data: any, options: { type: any; }): any {
+    return new OWIDTrendChart(data, options)
 }
+
+export function barChart(data: any, options: { type: any; }): any {
+    return new OWIDBarChart(data, options)
+}
+
+

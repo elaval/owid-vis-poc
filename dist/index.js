@@ -1,6 +1,5 @@
 import { OWIDTrendChart } from "./OWIDTrendChart/OWIDTrendChart";
 import { OWIDBarChart } from "./OWIDBarChart/OWIDBarChart";
-import { OWIDBaseChart } from "./OWIDBaseChart";
 export function OWIDPlot(data, options) {
     const type = options && options.type || "trendChart";
     if (type == "trendChart") {
@@ -15,8 +14,9 @@ export function OWIDPlot(data, options) {
         return null;
     }
 }
-export function OWIDPlotBase(data, options) {
-    const type = options && options.type || "trendChart";
-    let chart = new OWIDBaseChart(data, options);
-    return chart.render();
+export function trendChart(data, options) {
+    return new OWIDTrendChart(data, options);
+}
+export function barChart(data, options) {
+    return new OWIDBarChart(data, options);
 }
