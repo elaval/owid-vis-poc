@@ -1,17 +1,18 @@
 import * as d3 from 'd3';
 import * as _ from 'lodash';
-import { baseCSS } from './OWIDBaseChartCSS';
-import { config } from './OWIDBaseChartConfig';
-export class OWIDBaseChart {
+import { baseCSS } from './OWIDChartCSS';
+import { config } from './OWIDChartConfig';
+export class OWIDChart {
     _data = [];
-    _height;
-    _width;
     _marginTop = config.marginTop;
     _marginBottom = config.marginBottom;
     _marginLeft = config.marginLeft;
     _marginRight = config.marginRight;
     _heightTotal = config.heightTotal;
     _widthTotal = config.widthTotal;
+    /** _height / _width refer to internal visualization area (<g> maincontainer within <svg>) */
+    _height;
+    _width;
     _unit;
     _className;
     _valuesRange;
@@ -32,6 +33,7 @@ export class OWIDBaseChart {
         this._marginBottom = (options && options.marginBottom) || this._marginBottom;
         this._marginLeft = (options && options.marginLeft) || this._marginLeft;
         this._marginTop = (options && options.marginTop) || this._marginTop;
+        // Redefine main visialization height / width according to current total heigh/width and margins
         this._height = this._heightTotal - this._marginBottom - this._marginTop;
         this._width = this._widthTotal - this._marginLeft - this._marginRight;
         this._y = (options && options.y) || {};
@@ -54,10 +56,11 @@ export class OWIDBaseChart {
         this._chartContainer
             .append("div")
             .attr("class", "tooltipContainer");
-        this.setupSVGElements(this._chartSVG);
+        this.setupSVGElements();
+        this.baseStartupSettings();
     }
-    setupSVGElements(svg) {
-        svg
+    setupSVGElements() {
+        this._chartSVG
             .attr("class", this._className)
             .attr("fill", "currentColor")
             .attr("font-family", "system-ui, sans-serif")
@@ -69,11 +72,12 @@ export class OWIDBaseChart {
             .call((svg) => svg.append("style").text(this.css()))
             .call((svg) => svg
             .append("rect")
+            .attr("class", "bgLayer")
             .attr("width", this._widthTotal)
             .attr("height", this._heightTotal)
             .attr("fill", "white"));
         // If it does not already exists, we add a <g> element that will be the main container
-        const mainContainer = svg.selectAll("g.container")
+        const mainContainer = this._chartSVG.selectAll("g.container")
             .data([null]) // we will use D· data joins to create a single instance of the element
             .join("g")
             .attr("class", "container")
@@ -96,13 +100,37 @@ export class OWIDBaseChart {
             .select("rect.backgroundLayer")
             .on("mousemove", (e) => this.handleMouseMove(e))
             .on("mouseleave", () => this.handleMouseLeave());
-        return svg;
     }
     /**
-     * updateSizeAndMargins
+     * startupSettings()
      * Updated charts internat height / width dimensons based on current margins
+     *
+     * This fucntion can / should be called after there has been a change in configurations (e.g. width)
      */
-    updateSizeAndMargins() {
+    baseStartupSettings() {
+        this._chartSVG
+            .attr("width", this._widthTotal)
+            .attr("height", this._heightTotal)
+            .attr("viewBox", `0 0 ${this._widthTotal} ${this._heightTotal}`);
+        this._chartSVG
+            .select("rect.bgLayer")
+            .attr("width", this._widthTotal)
+            .attr("height", this._heightTotal);
+        this._chartSVG
+            .select("g.container")
+            .attr("transform", `translate(${this._marginLeft}, ${this._marginTop})`);
+        this._chartSVG
+            .select("g.container")
+            .select("rect.backgroundLayer")
+            .attr("width", this._width)
+            .attr("height", this._height);
+        this._chartSVG
+            .select("g.container")
+            .select("g.axis.x")
+            .attr("transform", `translate(${0}, ${this._height})`);
+        // Redefine main visialization height / width according to current total heigh/width and margins
+        this._height = this._heightTotal - this._marginBottom - this._marginTop;
+        this._width = this._widthTotal - this._marginLeft - this._marginRight;
         // Applies new left margin to our chart main <g> container
         this._chartContainer.select("svg")
             .select("g.container")
@@ -115,6 +143,73 @@ export class OWIDBaseChart {
         this._chartContainer.select("svg")
             .select("g.axis.x")
             .attr("transform", `translate(${0}, ${this._height})`);
+    }
+    startupSettings() {
+        this.baseStartupSettings();
+    }
+    /**
+     * Gets / sets the total chart width
+     * @param width
+     * @returns current width | current OWIDBarChart object
+     */
+    width(width) {
+        if (arguments.length) {
+            this._widthTotal = width;
+            this.startupSettings();
+            this.render();
+            return this;
+        }
+        else {
+            return this._widthTotal;
+        }
+    }
+    /**
+     * Gets / sets the unit associated to values in our data
+     * @param unit
+     * @returns current unit | current OWIDBarChart object
+     */
+    unit(unit) {
+        if (arguments.length) {
+            this._unit = unit;
+            this.startupSettings();
+            this.render();
+            return this;
+        }
+        else {
+            return this._unit;
+        }
+    }
+    /**
+     * Gets / sets the option for
+     * @param options
+     * @returns current unit | current OWIDBarChart object
+     */
+    x(options) {
+        if (arguments.length) {
+            this._x = options;
+            this.startupSettings();
+            this.render();
+            return this;
+        }
+        else {
+            return this._x;
+        }
+    }
+    /**
+   * Gets / sets the option for
+   * @param options
+   * @returns current unit | current OWIDBarChart object
+   */
+    y(options) {
+        if (arguments.length) {
+            this._y = options;
+            this.startupSettings();
+            this.render();
+            return this;
+        }
+        else {
+            return this._y;
+        }
     }
     handleMouseMove(e) {
         const pos_relTarget = d3.pointer(e);
@@ -139,6 +234,8 @@ export class OWIDBaseChart {
         return textWidth;
     }
     render() {
+    }
+    node() {
         return this._chartContainer.node();
     }
     css() {

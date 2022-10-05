@@ -1,0 +1,108 @@
+<!DOCTYPE html><html class="default" lang="en"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>@elaval/owid-vis-poc</title><meta name="description" content="Documentation for @elaval/owid-vis-poc"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="assets/style.css"/><link rel="stylesheet" href="assets/highlight.css"/><script async src="assets/search.js" id="search-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os"</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container">
+<div class="table-cell" id="tsd-search" data-base=".">
+<div class="field"><label for="tsd-search-field" class="tsd-widget search no-caption"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M15.7824 13.833L12.6666 10.7177C12.5259 10.5771 12.3353 10.499 12.1353 10.499H11.6259C12.4884 9.39596 13.001 8.00859 13.001 6.49937C13.001 2.90909 10.0914 0 6.50048 0C2.90959 0 0 2.90909 0 6.49937C0 10.0896 2.90959 12.9987 6.50048 12.9987C8.00996 12.9987 9.39756 12.4863 10.5008 11.6239V12.1332C10.5008 12.3332 10.5789 12.5238 10.7195 12.6644L13.8354 15.7797C14.1292 16.0734 14.6042 16.0734 14.8948 15.7797L15.7793 14.8954C16.0731 14.6017 16.0731 14.1267 15.7824 13.833ZM6.50048 10.499C4.29094 10.499 2.50018 8.71165 2.50018 6.49937C2.50018 4.29021 4.28781 2.49976 6.50048 2.49976C8.71001 2.49976 10.5008 4.28708 10.5008 6.49937C10.5008 8.70852 8.71314 10.499 6.50048 10.499Z" fill="var(--color-text)"></path></svg></label><input type="text" id="tsd-search-field" aria-label="Search"/></div>
+<ul class="results">
+<li class="state loading">Preparing search index...</li>
+<li class="state failure">The search index is not available</li></ul><a href="index.html" class="title">@elaval/owid-vis-poc</a></div>
+<div class="table-cell" id="tsd-widgets"><a href="#" class="tsd-widget menu no-caption" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="3" width="14" height="2" fill="var(--color-text)"></rect><rect x="1" y="7" width="14" height="2" fill="var(--color-text)"></rect><rect x="1" y="11" width="14" height="2" fill="var(--color-text)"></rect></svg></a></div></div></header>
+<div class="container container-main">
+<div class="col-8 col-content">
+<div class="tsd-page-title">
+<h2>@elaval/owid-vis-poc</h2></div>
+<div class="tsd-panel tsd-typography">
+<a href="#a-javascript-tool-for-building-visualizations-with-data-from-our-world-in-data" id="a-javascript-tool-for-building-visualizations-with-data-from-our-world-in-data" style="color: inherit; text-decoration: none;">
+  <h1>A Javascript tool for building visualizations with data from Our World in Data</h1>
+</a>
+
+<a href="#a-proof-of-concept" id="a-proof-of-concept" style="color: inherit; text-decoration: none;">
+  <h2>A Proof of concept</h2>
+</a>
+<p>Our World in Data (OWID) is an initiative that aims at <strong>research and data to make progress against the world’s largest problems</strong>.  They collect and mantain hundreds of datasets from worlwide public data that is transformed into meaningful information via evidence based articles and data visualisations.</p>
+<p>They currently have a powerful visualization tool - OWID Grapher - that has been designed to easily create, and publish, visualization information on top of their datasets.  Grapher is a great tool, but it si possible to complement it with new depelopments.</p>
+<p>This respository contains a very simple prototype that I developed to play with some ideas.  I imagine an OWID Javascript charting tool that has the following features:</p>
+<ul>
+<li>Is decoupled from the database (can consume data that is provided via Javascript without direct connection to the database)</li>
+<li>Has an architecture and code that is easy to understand, so that other developers can contribute and / or expand its functionalities.</li>
+<li>It is aware of the characteristics of OWID data.  This is not &quot;yeat another charting tool&quot; but a tool that works well with data that is organised with time (years / dates) and gographical entities (countries, continents, grouops of countries) with relevant values metrics (which might have specific units and formatting conventions)</li>
+<li>It is easy to intergrate in other systems.</li>
+</ul>
+<p>The core of the tool is to build visualizations that could be embedded in other systems (e.g. blogs or notebooks) or used as components for other developments.  These visualizations will usually be used within a standard &quot;wrapper&quot; that would handle common functionalities (display sources, export data and images, filters, ...), but this wrapper would be a separate development that consumes the core visualizations.</p>
+
+<a href="#characteristics-of-owid-data" id="characteristics-of-owid-data" style="color: inherit; text-decoration: none;">
+  <h2>Characteristics of OWID data</h2>
+</a>
+<p>Current OWID Grappher consumes data from a MySQL database that is publicly distributed.  When we look at the data model, we can identify some key concepts </p>
+<p><img src="https://user-images.githubusercontent.com/68602/193713247-772bf1d0-1610-4d5b-ad0a-8703cc15493d.png" alt="owid data model"></p>
+<ul>
+<li>Datasets: are associated to a specific source and can contain a collection of <em>variables</em> (metrics)</li>
+<li>Tags: descriptors that are associates to <strong>datasets</strong> (e.g. &quot;Population Growth&quot;).  Tags can have tag parents which allows to build a hierarchical structure of tags (e.g. &quot;Population Growth&quot; is a child of &quot;Population Growth &amp; Vital Statistics&quot;)</li>
+<li>Variables: multiple variables can be associated to a <strong>dataset</strong>.  Each variable (e.g. &quot;Fertility Rate&quot;) has a unit (e.g. &quot;children per woman&quot;) and is associated to a table contains a collection of <strong>data-values</strong> that links values with time (year) and entities (countries, continents, ...).</li>
+<li>Entities have a name (e.g. &quot;United Kingdom&quot;) and id (e.g. 1) and a code (e.g. GBR)</li>
+</ul>
+<p>Once the user has selected a domain and dataset (e.g. &quot;World Development Indicators - Economic Policy &amp; Debt&quot;) and a specific variable from that dataset  (e.g. &quot;GDP per capita, PPP (constant 2011 international $)&quot;) then we are dealing with data values that can be exemplefied by the following table:</p>
+<img width="462" alt="image" src="https://user-images.githubusercontent.com/68602/193715399-22af89ec-572e-4cbd-a887-9872beaf4108.png">
+
+<p>The key dimensions for our visualization purposes are</p>
+<ul>
+<li><strong>entity name</strong> (categorical)</li>
+<li><strong>year</strong> (ordinal / time)</li>
+</ul>
+<p>And we have a numeric variable (&quot;<strong>value</strong>&quot;) with ranges, units and format that will depend on the specific variable (%, people, $, ...)</p>
+<p>The most common messages that we would like to communicate in our visualizations are:</p>
+<ul>
+<li>Trends:  how the metric evolves on time for a specific entity, and how the trend from different entities can be compared (line charts)</li>
+<li>Rankings: the relative size and order of the metrics for different entities (bar charts)</li>
+<li>Geography: how is the relative size of the metric distributed in the world (maps)</li>
+</ul>
+
+<a href="#anatomy-of-an-owid-visualization" id="anatomy-of-an-owid-visualization" style="color: inherit; text-decoration: none;">
+  <h2>Anatomy of an OWID visualization</h2>
+</a>
+<p>A visualization is a conceptual entity that usually contains the following elements:</p>
+<ul>
+<li>A graphical repesentation in a 2D plane that takes advantage of visual variables (size, position, shape , color) to represent magnitudes, trends, relationships, ...</li>
+<li>Axis that communicate the relationship between domain values (e.g. age, income) and phisical ranges in the chart (vertical / horizontal position)</li>
+<li>Legends that map colors to categorical variables (e.g. countries)</li>
+<li>Titles / subtitles</li>
+<li>Annotations</li>
+<li>Tooltips</li>
+</ul>
+<p>In contrete &quot;browser&quot; terms, the visualization is represented as a DOM element (e.g. a <div>) that can be embedded in a html page. Usualli visualizations are created with <svg> elements that offer great flexibility to represent (and manage) visual representations inside an html page.</p>
+<p>A <svg> element can contain diffrerent visual elements (circles, rectangles, linespaths, text) that are located in a x/y coordinate system within the <svg> container.  We can also insert a <g> container in the <svg> element (or inside another <g> element) which provides a local coordinate system (a rect within a <g> has a positiomn relative to its parent).</p>
+<p>In general our visualizations will have the following framework:</p>
+  <img width="1443" alt="image" src="https://user-images.githubusercontent.com/68602/193721282-f277048e-c751-4173-abf6-8137528e4e9c.png">
+  
+<p>Our chart container is a <div> element that can be embedded in any &quot;html wrapper&quot; that will contain the visualization.</p>
+<p>The <svg> element will define the absolute dimensions of the visualization (height &amp; width) and will contain a main <g> container which is ultimately the elemengt where we will <em>draw</em> our visual representations.</p>
+<p>Our <g> container usually has <em>margins</em> that define space for axis, labels and titles that are placed out beyond the boundaries of our main visualization.</p>
+</div></div>
+<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+<div class="tsd-navigation settings">
+<details class="tsd-index-accordion"><summary class="tsd-accordion-summary">
+<h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4.93896 8.531L12 15.591L19.061 8.531L16.939 6.409L12 11.349L7.06098 6.409L4.93896 8.531Z" fill="var(--color-text)"></path></svg> Settings</h3></summary>
+<div class="tsd-accordion-details">
+<div class="tsd-filter-visibility">
+<h4 class="uppercase">Member Visibility</h4><form>
+<ul id="tsd-filter-options">
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-private" name="private"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Private</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-external" name="external"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>External</span></label></li></ul></form></div>
+<div class="tsd-theme-toggle">
+<h4 class="uppercase">Theme</h4><select id="theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div>
+<nav class="tsd-navigation primary">
+<details class="tsd-index-accordion" open><summary class="tsd-accordion-summary">
+<h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4.93896 8.531L12 15.591L19.061 8.531L16.939 6.409L12 11.349L7.06098 6.409L4.93896 8.531Z" fill="var(--color-text)"></path></svg> Modules</h3></summary>
+<div class="tsd-accordion-details">
+<ul>
+<li class="current selected"><a href="modules.html">@elaval/owid-<wbr/>vis-<wbr/>poc</a>
+<ul></ul></li></ul></div></details></nav>
+<nav class="tsd-navigation secondary menu-sticky">
+<ul>
+<li class="tsd-kind-function"><a href="functions/OWIDPlot.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-function)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6" id="icon-64-path"></rect><path d="M9.39 16V7.24H14.55V8.224H10.446V11.128H14.238V12.112H10.47V16H9.39Z" fill="var(--color-text)" id="icon-64-text"></path></svg>OWIDPlot</a></li>
+<li class="tsd-kind-function"><a href="functions/barChart.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-64-path"></use><use href="#icon-64-text"></use></svg>bar<wbr/>Chart</a></li>
+<li class="tsd-kind-function"><a href="functions/trendChart.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-64-path"></use><use href="#icon-64-text"></use></svg>trend<wbr/>Chart</a></li></ul></nav></div></div>
+<div class="container tsd-generator">
+<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></div>
+<div class="overlay"></div><script src="assets/main.js"></script></body></html>

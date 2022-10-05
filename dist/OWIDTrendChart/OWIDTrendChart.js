@@ -1,9 +1,9 @@
 import * as d3 from 'd3';
 import * as _ from 'lodash';
-import { OWIDBaseChart } from '../OWIDBaseChart';
+import { OWIDChart } from '../OWIDChart/OWIDChart';
 import { OWIDTrendChartTooltip } from "./OWIDTrendChartTooltip";
 import { config } from './OWIDTrendChartConfig';
-export class OWIDTrendChart extends OWIDBaseChart {
+export class OWIDTrendChart extends OWIDChart {
     _scaleX = d3.scaleLinear();
     _scaleY = d3.scaleLinear();
     _axisX = d3.axisBottom(this._scaleX);
@@ -33,6 +33,7 @@ export class OWIDTrendChart extends OWIDBaseChart {
         this.render();
     }
     startupSettings() {
+        super.baseStartupSettings();
         this._marginBottom = config.marginBottom;
         this._height = this._heightTotal - this._marginTop - this._marginBottom;
         this._valuesRange = d3.extent(this._data, (d) => d.value);
@@ -56,7 +57,7 @@ export class OWIDTrendChart extends OWIDBaseChart {
         // Adjust width according to new margins
         this._width = this._widthTotal - this._marginLeft - this._marginRight;
         this._width = this._widthTotal - this._marginLeft - this._marginRight;
-        super.updateSizeAndMargins();
+        super.baseStartupSettings();
         this._scaleX.range([0, this._width]);
         this._scaleY.range([this._height, 0]);
         this._seriesData = _.chain(this._data)

@@ -1,6 +1,6 @@
 import * as d3 from 'd3';
-import { OWIDBaseChart } from '../OWIDBaseChart';
-export declare class OWIDTrendChart extends OWIDBaseChart {
+import { OWIDChart } from '../OWIDChart/OWIDChart';
+export declare class OWIDTrendChart extends OWIDChart {
     protected _scaleX: d3.ScaleLinear<number, number, never>;
     protected _scaleY: d3.ScaleLinear<number, number, never>;
     protected _axisX: d3.Axis<d3.NumberValue>;
@@ -15,7 +15,7 @@ export declare class OWIDTrendChart extends OWIDBaseChart {
     private _maxYear;
     private _visibleValues;
     constructor(data: any, options: any);
-    private startupSettings;
+    protected startupSettings(): void;
     render(): void;
     handleMouseMove(e: any): void;
     handleMouseLeave(): void;

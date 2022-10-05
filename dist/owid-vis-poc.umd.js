@@ -21446,16 +21446,17 @@ const config$2 = {
     colorScheme: schemeCategory10
 };
 
-class OWIDBaseChart {
+class OWIDChart {
     _data = [];
-    _height;
-    _width;
     _marginTop = config$2.marginTop;
     _marginBottom = config$2.marginBottom;
     _marginLeft = config$2.marginLeft;
     _marginRight = config$2.marginRight;
     _heightTotal = config$2.heightTotal;
     _widthTotal = config$2.widthTotal;
+    /** _height / _width refer to internal visualization area (<g> maincontainer within <svg>) */
+    _height;
+    _width;
     _unit;
     _className;
     _valuesRange;
@@ -21476,6 +21477,7 @@ class OWIDBaseChart {
         this._marginBottom = (options && options.marginBottom) || this._marginBottom;
         this._marginLeft = (options && options.marginLeft) || this._marginLeft;
         this._marginTop = (options && options.marginTop) || this._marginTop;
+        // Redefine main visialization height / width according to current total heigh/width and margins
         this._height = this._heightTotal - this._marginBottom - this._marginTop;
         this._width = this._widthTotal - this._marginLeft - this._marginRight;
         this._y = (options && options.y) || {};
@@ -21497,10 +21499,11 @@ class OWIDBaseChart {
         this._chartContainer
             .append("div")
             .attr("class", "tooltipContainer");
-        this.setupSVGElements(this._chartSVG);
+        this.setupSVGElements();
+        this.baseStartupSettings();
     }
-    setupSVGElements(svg) {
-        svg
+    setupSVGElements() {
+        this._chartSVG
             .attr("class", this._className)
             .attr("fill", "currentColor")
             .attr("font-family", "system-ui, sans-serif")
@@ -21512,11 +21515,12 @@ class OWIDBaseChart {
             .call((svg) => svg.append("style").text(this.css()))
             .call((svg) => svg
             .append("rect")
+            .attr("class", "bgLayer")
             .attr("width", this._widthTotal)
             .attr("height", this._heightTotal)
             .attr("fill", "white"));
         // If it does not already exists, we add a <g> element that will be the main container
-        const mainContainer = svg.selectAll("g.container")
+        const mainContainer = this._chartSVG.selectAll("g.container")
             .data([null]) // we will use D· data joins to create a single instance of the element
             .join("g")
             .attr("class", "container")
@@ -21539,13 +21543,37 @@ class OWIDBaseChart {
             .select("rect.backgroundLayer")
             .on("mousemove", (e) => this.handleMouseMove(e))
             .on("mouseleave", () => this.handleMouseLeave());
-        return svg;
     }
     /**
-     * updateSizeAndMargins
+     * startupSettings()
      * Updated charts internat height / width dimensons based on current margins
+     *
+     * This fucntion can / should be called after there has been a change in configurations (e.g. width)
      */
-    updateSizeAndMargins() {
+    baseStartupSettings() {
+        this._chartSVG
+            .attr("width", this._widthTotal)
+            .attr("height", this._heightTotal)
+            .attr("viewBox", `0 0 ${this._widthTotal} ${this._heightTotal}`);
+        this._chartSVG
+            .select("rect.bgLayer")
+            .attr("width", this._widthTotal)
+            .attr("height", this._heightTotal);
+        this._chartSVG
+            .select("g.container")
+            .attr("transform", `translate(${this._marginLeft}, ${this._marginTop})`);
+        this._chartSVG
+            .select("g.container")
+            .select("rect.backgroundLayer")
+            .attr("width", this._width)
+            .attr("height", this._height);
+        this._chartSVG
+            .select("g.container")
+            .select("g.axis.x")
+            .attr("transform", `translate(${0}, ${this._height})`);
+        // Redefine main visialization height / width according to current total heigh/width and margins
+        this._height = this._heightTotal - this._marginBottom - this._marginTop;
+        this._width = this._widthTotal - this._marginLeft - this._marginRight;
         // Applies new left margin to our chart main <g> container
         this._chartContainer.select("svg")
             .select("g.container")
@@ -21558,6 +21586,73 @@ class OWIDBaseChart {
         this._chartContainer.select("svg")
             .select("g.axis.x")
             .attr("transform", `translate(${0}, ${this._height})`);
+    }
+    startupSettings() {
+        this.baseStartupSettings();
+    }
+    /**
+     * Gets / sets the total chart width
+     * @param width
+     * @returns current width | current OWIDBarChart object
+     */
+    width(width) {
+        if (arguments.length) {
+            this._widthTotal = width;
+            this.startupSettings();
+            this.render();
+            return this;
+        }
+        else {
+            return this._widthTotal;
+        }
+    }
+    /**
+     * Gets / sets the unit associated to values in our data
+     * @param unit
+     * @returns current unit | current OWIDBarChart object
+     */
+    unit(unit) {
+        if (arguments.length) {
+            this._unit = unit;
+            this.startupSettings();
+            this.render();
+            return this;
+        }
+        else {
+            return this._unit;
+        }
+    }
+    /**
+     * Gets / sets the option for
+     * @param options
+     * @returns current unit | current OWIDBarChart object
+     */
+    x(options) {
+        if (arguments.length) {
+            this._x = options;
+            this.startupSettings();
+            this.render();
+            return this;
+        }
+        else {
+            return this._x;
+        }
+    }
+    /**
+   * Gets / sets the option for
+   * @param options
+   * @returns current unit | current OWIDBarChart object
+   */
+    y(options) {
+        if (arguments.length) {
+            this._y = options;
+            this.startupSettings();
+            this.render();
+            return this;
+        }
+        else {
+            return this._y;
+        }
     }
     handleMouseMove(e) {
         pointer(e);
@@ -21582,6 +21677,8 @@ class OWIDBaseChart {
         return textWidth;
     }
     render() {
+    }
+    node() {
         return this._chartContainer.node();
     }
     css() {
@@ -21685,7 +21782,7 @@ const config$1 = {
     marginBottom: 50
 };
 
-class OWIDTrendChart extends OWIDBaseChart {
+class OWIDTrendChart extends OWIDChart {
     _scaleX = linear();
     _scaleY = linear();
     _axisX = axisBottom(this._scaleX);
@@ -21715,6 +21812,7 @@ class OWIDTrendChart extends OWIDBaseChart {
         this.render();
     }
     startupSettings() {
+        super.baseStartupSettings();
         this._marginBottom = config$1.marginBottom;
         this._height = this._heightTotal - this._marginTop - this._marginBottom;
         this._valuesRange = extent(this._data, (d) => d.value);
@@ -21736,7 +21834,7 @@ class OWIDTrendChart extends OWIDBaseChart {
         // Adjust width according to new margins
         this._width = this._widthTotal - this._marginLeft - this._marginRight;
         this._width = this._widthTotal - this._marginLeft - this._marginRight;
-        super.updateSizeAndMargins();
+        super.baseStartupSettings();
         this._scaleX.range([0, this._width]);
         this._scaleY.range([this._height, 0]);
         this._seriesData = lodash.exports.chain(this._data)
@@ -22175,81 +22273,103 @@ const inlineCSS = `
 
 `;
 
-class OWIDBarChart extends OWIDBaseChart {
-    _scaleX = linear();
-    _scaleY = band();
-    _axisX = axisBottom(this._scaleX);
-    _axisY = axisLeft(this._scaleY);
+/** Creates a Trend Chart (Line Chart with values by year with series for each entity) */
+class OWIDBarChart extends OWIDChart {
+    _scaleX;
+    _scaleY;
+    _axisX;
+    _axisY;
     _year;
     _latestYear;
     _entities = [];
     _singleYearData;
     _maxValue;
+    /**
+     * Creates a TrendChart for OWID data.
+     *
+     * @remarks
+     * Requires data records with {entityName:string, year:number, value:number}.
+     *
+     * @param data - Array with pata points
+     * @param options - Options for chart configuration (e.g. {"unit": "people"})
+     */
     constructor(data, options) {
         super(data, options);
         this._year = options && options.year;
+        // For barchart we overwrite the default marginBottom fo give more space for x axis
+        this._marginBottom = config.marginBottom;
         this._toolTip = new OWIDBarChartTooltip({ colorScale: this._colorScale, containerWidth: this._width });
         this._chartContainer.node().appendChild(this._toolTip.render().node());
+        // Create X/Y scales and axis
+        this._scaleX = linear();
+        this._scaleY = band();
+        this._axisX = axisBottom(this._scaleX);
+        this._axisY = axisLeft(this._scaleY);
         this.startupSettings();
         this.render();
     }
+    /**
+     * Configures properties that are reuqired prior to rendering the visualization
+     * @returns void
+     */
     startupSettings() {
+        /**
+         * Bar charts will focus on multiple values for a single year
+         *
+         * If the year has been specified in options ({year: 2020}) or via the year function( .year(2020)) we will use
+         * the specified year to filter the data to be plotted.
+         *
+         * If the year has not been specified, we will use the latest year in the data
+         */
         this._latestYear = lodash.exports.chain(this._data).map((d) => d.year).max().value();
         this._year = this._year || this._latestYear;
+        /** _singleYearData is the dataset we use for building the Chart */
         this._singleYearData = this._data.filter((d) => d.year == this._year);
-        this._marginBottom = config.marginBottom;
-        this._height = this._heightTotal - this._marginTop - this._marginBottom;
-        this._valuesRange = extent(this._data, (d) => d.value);
+        // Update the overal <svg> & <g> main container dimensiosn and positions in case with / margings have been changed
+        super.baseStartupSettings();
+        /** _entities is used to configure our Y Scale domain */
         this._entities = lodash.exports.chain(this._singleYearData)
             .sortBy(d => d.value)
             .map(d => d.entityName)
             .uniq()
             .value();
+        /** _maxValue is used to configure our X Scale domain */
         this._maxValue = lodash.exports.chain(this._singleYearData)
             .map(d => d.value)
             .max()
             .value();
-        this._scaleX = linear()
-            .range([0, this._width])
+        /** Configure X/Y scales */
+        this._scaleX.range([0, this._width])
             .domain([0, this._maxValue]);
-        this._scaleY = band()
-            .padding(config.barsPadding)
+        this._scaleY.padding(config.barsPadding)
             .range([this._height, 0])
             .domain(this._entities);
-        this._axisX = axisBottom(this._scaleX)
-            .ticks(10)
+        /** Modify ticks & format for X Axis using the specified 'unit'*/
+        this._axisX.ticks(10)
             .tickFormat((d) => `${d} ${this._unit}`);
-        this._axisY = axisLeft(this._scaleY);
-        // Update left/right margin depending on the length on entitynames & values
+        // Update left/right margin depending on the actual length on entitynames & values
         this._marginLeft = this.calculateMarginLeft() > this._marginLeft
             ? this.calculateMarginLeft()
             : this._marginLeft;
         this._marginRight = this.calculateMarginRight() > this._marginRight
             ? this.calculateMarginRight()
             : this._marginRight;
-        // Adjust width according to new margins
-        this._width = this._widthTotal - this._marginLeft - this._marginRight;
-        // Update dimensions of <svg> inner elements according to updated margins & witdh
-        super.updateSizeAndMargins();
-        // Update scales ranges
+        // Update the overal <svg> & <g> main container dimensions and positions
+        super.baseStartupSettings();
+        // Update scales ranges in case that left /right margins have been modified
         this._scaleX.range([0, this._width]);
-        this._scaleY.range([this._height, 0]);
-        if (this._y && this._y.grid) {
-            this.showGridY();
-        }
-        if (this._x && this._x.grid) {
-            this.showGridX();
-        }
     }
     render() {
         // Main container is the <g> element where we will displayi our chart
         const mainContainer = this._chartContainer.select("svg").select("g.container");
-        // We handle events for mouse interaction on the main container
-        mainContainer
-            .select("rect.backgroundLayer")
-            .on("mousemove", (e) => this.handleMouseMove(e))
-            .on("mouseleave", () => this.handleMouseLeave());
-        // Add bars associated to each entity for teh given year
+        /** render x/y axes */
+        mainContainer.select("g.axis.x").call(this._axisX);
+        mainContainer.select("g.axis.y").call(this._axisY);
+        // Display gridlines if specified
+        if (this._x && this._x.grid) {
+            this.showGridX();
+        }
+        // Add bars associated to each entity for the given year
         mainContainer
             .selectAll("rect.entity")
             .data(this._singleYearData, (d) => d.entityName)
@@ -22259,6 +22379,7 @@ class OWIDBarChart extends OWIDBaseChart {
             .attr("y", (d) => d.entityName && this._scaleY(d.entityName))
             .attr("height", this._scaleY.bandwidth())
             .attr("width", (d) => this._scaleX(d.value));
+        // Add text labels at the end of each bar
         mainContainer
             .selectAll("text.value")
             .data(this._singleYearData, (d) => d.entityName)
@@ -22271,19 +22392,32 @@ class OWIDBarChart extends OWIDBaseChart {
             .attr("font-size", config.valueFontSize)
             .attr("text-anchor", "start")
             .text((d) => `${d.value} ${this._unit}`);
+        // We handle events for mouse interaction on the main container
+        mainContainer
+            .select("rect.backgroundLayer")
+            .on("mousemove", (e) => this.handleMouseMove(e))
+            .on("mouseleave", () => this.handleMouseLeave());
+        // Add <style> with CSS local to our chart container
         this._chartContainer.selectAll("style")
             .data([null])
             .join("style")
             .text(inlineCSS);
-        mainContainer.select("g.axis.x").call(this._axisX);
-        mainContainer.select("g.axis.y").call(this._axisY);
-        return this.node();
     }
+    /**
+     * Gets / sets the year that is a target for our data
+     * @param year
+     * @returns
+     */
     year(year) {
-        this._year = year;
-        this.startupSettings();
-        this.render();
-        return this;
+        if (arguments.length) {
+            this._year = year;
+            this.startupSettings();
+            this.render();
+            return this;
+        }
+        else {
+            return this._year;
+        }
     }
     handleMouseMove(e) {
     }

@@ -1,6 +1,6 @@
 import { OWIDTrendChart } from "./OWIDTrendChart/OWIDTrendChart";
 import { OWIDBarChart } from "./OWIDBarChart/OWIDBarChart"
-import { OWIDBaseChart } from "./OWIDBaseChart";
+import { OWIDChart } from "./OWIDChart/OWIDChart";
 
 export function OWIDPlot(data: any, options: { type: any; }): any {
     const type = options && options.type || "trendChart"

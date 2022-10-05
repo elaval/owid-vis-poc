@@ -1,86 +1,106 @@
 import * as d3 from 'd3';
 import * as _ from 'lodash';
-import { OWIDBaseChart } from '../OWIDBaseChart';
+import { OWIDChart } from '../OWIDChart/OWIDChart';
 import { OWIDBarChartTooltip } from "./OWIDBarChartTooltip";
 import { config } from './OWIDBarChartConfig';
 import { inlineCSS } from "./OWIDBarChartCSS";
-export class OWIDBarChart extends OWIDBaseChart {
-    _scaleX = d3.scaleLinear();
-    _scaleY = d3.scaleBand();
-    _axisX = d3.axisBottom(this._scaleX);
-    _axisY = d3.axisLeft(this._scaleY);
+/** Creates a Trend Chart (Line Chart with values by year with series for each entity) */
+export class OWIDBarChart extends OWIDChart {
+    _scaleX;
+    _scaleY;
+    _axisX;
+    _axisY;
     _year;
     _latestYear;
     _entities = [];
     _singleYearData;
     _maxValue;
+    /**
+     * Creates a TrendChart for OWID data.
+     *
+     * @remarks
+     * Requires data records with {entityName:string, year:number, value:number}.
+     *
+     * @param data - Array with pata points
+     * @param options - Options for chart configuration (e.g. {"unit": "people"})
+     */
     constructor(data, options) {
         super(data, options);
         this._year = options && options.year;
+        // For barchart we overwrite the default marginBottom fo give more space for x axis
+        this._marginBottom = config.marginBottom;
         this._toolTip = new OWIDBarChartTooltip({ colorScale: this._colorScale, containerWidth: this._width });
         this._chartContainer.node().appendChild(this._toolTip.render().node());
+        // Create X/Y scales and axis
+        this._scaleX = d3.scaleLinear();
+        this._scaleY = d3.scaleBand();
+        this._axisX = d3.axisBottom(this._scaleX);
+        this._axisY = d3.axisLeft(this._scaleY);
         this.startupSettings();
         this.render();
     }
+    /**
+     * Configures properties that are reuqired prior to rendering the visualization
+     * @returns void
+     */
     startupSettings() {
+        /**
+         * Bar charts will focus on multiple values for a single year
+         *
+         * If the year has been specified in options ({year: 2020}) or via the year function( .year(2020)) we will use
+         * the specified year to filter the data to be plotted.
+         *
+         * If the year has not been specified, we will use the latest year in the data
+         */
         this._latestYear = _.chain(this._data).map((d) => d.year).max().value();
         this._year = this._year || this._latestYear;
+        /** _singleYearData is the dataset we use for building the Chart */
         this._singleYearData = this._data.filter((d) => d.year == this._year);
-        this._marginBottom = config.marginBottom;
-        this._height = this._heightTotal - this._marginTop - this._marginBottom;
-        this._valuesRange = d3.extent(this._data, (d) => d.value);
+        // Update the overal <svg> & <g> main container dimensiosn and positions in case with / margings have been changed
+        super.baseStartupSettings();
+        /** _entities is used to configure our Y Scale domain */
         this._entities = _.chain(this._singleYearData)
             .sortBy(d => d.value)
             .map(d => d.entityName)
             .uniq()
             .value();
+        /** _maxValue is used to configure our X Scale domain */
         this._maxValue = _.chain(this._singleYearData)
             .map(d => d.value)
             .max()
             .value();
-        this._scaleX = d3.scaleLinear()
-            .range([0, this._width])
+        /** Configure X/Y scales */
+        this._scaleX.range([0, this._width])
             .domain([0, this._maxValue]);
-        this._scaleY = d3
-            .scaleBand()
-            .padding(config.barsPadding)
+        this._scaleY.padding(config.barsPadding)
             .range([this._height, 0])
             .domain(this._entities);
-        this._axisX = d3.axisBottom(this._scaleX)
-            .ticks(10)
+        /** Modify ticks & format for X Axis using the specified 'unit'*/
+        this._axisX.ticks(10)
             .tickFormat((d) => `${d} ${this._unit}`);
-        this._axisY = d3
-            .axisLeft(this._scaleY);
-        // Update left/right margin depending on the length on entitynames & values
+        // Update left/right margin depending on the actual length on entitynames & values
         this._marginLeft = this.calculateMarginLeft() > this._marginLeft
             ? this.calculateMarginLeft()
             : this._marginLeft;
         this._marginRight = this.calculateMarginRight() > this._marginRight
             ? this.calculateMarginRight()
             : this._marginRight;
-        // Adjust width according to new margins
-        this._width = this._widthTotal - this._marginLeft - this._marginRight;
-        // Update dimensions of <svg> inner elements according to updated margins & witdh
-        super.updateSizeAndMargins();
-        // Update scales ranges
+        // Update the overal <svg> & <g> main container dimensions and positions
+        super.baseStartupSettings();
+        // Update scales ranges in case that left /right margins have been modified
         this._scaleX.range([0, this._width]);
-        this._scaleY.range([this._height, 0]);
-        if (this._y && this._y.grid) {
-            this.showGridY();
-        }
-        if (this._x && this._x.grid) {
-            this.showGridX();
-        }
     }
     render() {
         // Main container is the <g> element where we will displayi our chart
         const mainContainer = this._chartContainer.select("svg").select("g.container");
-        // We handle events for mouse interaction on the main container
-        mainContainer
-            .select("rect.backgroundLayer")
-            .on("mousemove", (e) => this.handleMouseMove(e))
-            .on("mouseleave", () => this.handleMouseLeave());
-        // Add bars associated to each entity for teh given year
+        /** render x/y axes */
+        mainContainer.select("g.axis.x").call(this._axisX);
+        mainContainer.select("g.axis.y").call(this._axisY);
+        // Display gridlines if specified
+        if (this._x && this._x.grid) {
+            this.showGridX();
+        }
+        // Add bars associated to each entity for the given year
         const bars = mainContainer
             .selectAll("rect.entity")
             .data(this._singleYearData, (d) => d.entityName)
@@ -90,6 +110,7 @@ export class OWIDBarChart extends OWIDBaseChart {
             .attr("y", (d) => d.entityName && this._scaleY(d.entityName))
             .attr("height", this._scaleY.bandwidth())
             .attr("width", (d) => this._scaleX(d.value));
+        // Add text labels at the end of each bar
         const text = mainContainer
             .selectAll("text.value")
             .data(this._singleYearData, (d) => d.entityName)
@@ -102,19 +123,32 @@ export class OWIDBarChart extends OWIDBaseChart {
             .attr("font-size", config.valueFontSize)
             .attr("text-anchor", "start")
             .text((d) => `${d.value} ${this._unit}`);
+        // We handle events for mouse interaction on the main container
+        mainContainer
+            .select("rect.backgroundLayer")
+            .on("mousemove", (e) => this.handleMouseMove(e))
+            .on("mouseleave", () => this.handleMouseLeave());
+        // Add <style> with CSS local to our chart container
         this._chartContainer.selectAll("style")
             .data([null])
             .join("style")
             .text(inlineCSS);
-        mainContainer.select("g.axis.x").call(this._axisX);
-        mainContainer.select("g.axis.y").call(this._axisY);
-        return this.node();
     }
+    /**
+     * Gets / sets the year that is a target for our data
+     * @param year
+     * @returns
+     */
     year(year) {
-        this._year = year;
-        this.startupSettings();
-        this.render();
-        return this;
+        if (arguments.length) {
+            this._year = year;
+            this.startupSettings();
+            this.render();
+            return this;
+        }
+        else {
+            return this._year;
+        }
     }
     handleMouseMove(e) {
     }
