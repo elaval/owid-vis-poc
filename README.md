@@ -36,7 +36,11 @@ My idea is that we would develop a javascript library that will be easily distri
 
 <img width="933" alt="image" src="https://user-images.githubusercontent.com/68602/194140362-e61b3a0f-6c05-49bc-ae90-491a99d59dce.png">
 
-In tools such as observablehq.com it 
+You can see this in action in a html page with pure Javascript at [https://elaval.github.io/owid-vis-demo-basic/index.html](https://elaval.github.io/owid-vis-demo-basic/index.html)
+
+And you can access a notebook that exemplifies how to retreive OWID data and render trend & barcharts in Observable.com at:
+https://observablehq.com/@elaval/owid-visualisation-components-poc
+
 
 
 If we want to give another step to allow "democratize" visualizations associated to OWID data, we could work on a Javascript library that makes it easy to build and embbed visualizations as poart  
