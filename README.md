@@ -42,17 +42,45 @@ And you can access a notebook that exemplifies how to retreive OWID data and ren
 https://observablehq.com/@elaval/owid-visualisation-components-poc
 
 
+## Library architecture
 
-If we want to give another step to allow "democratize" visualizations associated to OWID data, we could work on a Javascript library that makes it easy to build and embbed visualizations as poart  
+### Data structure
+ We will assume that the visualization library will consume datasets with a standard format (but the library itself will not be responsible for retreiving / producing the data).  *Below we give an overview on OWID data model*.
 
-This respository contains a very simple prototype that I developed to play with some ideas.  I imagine an OWID Javascript charting tool that has the following features:
+The assumption is that all data will have records with, at least, **entitiName**, **year** and **value**
+<img width="462" alt="image" src="https://user-images.githubusercontent.com/68602/193715399-22af89ec-572e-4cbd-a887-9872beaf4108.png">
 
-- Is decoupled from the database (can consume data that is provided via Javascript without direct connection to the database)
-- Has an architecture and code that is easy to understand, so that other developers can contribute and / or expand its functionalities.
-- It is aware of the characteristics of OWID data.  This is not "yeat another charting tool" but a tool that works well with data that is organised with time (years / dates) and gographical entities (countries, continents, grouops of countries) with relevant values metrics (which might have specific units and formatting conventions)
-- It is easy to intergrate in other systems.
+Also the data will have a "unit" description that can should be part of the respective dataset metadata.
 
-The core of the tool is to build visualizations that could be embedded in other systems (e.g. blogs or notebooks) or used as components for other developments.  These visualizations will usually be used within a standard "wrapper" that would handle common functionalities (display sources, export data and images, filters, ...), but this wrapper would be a separate development that consumes the core visualizations.
+### Library classes
+The visualization library will export an object - **owidVIS** - that will provide a collection of chart building functions. For example:
+
+* **OWIDTrendChart**: Creates a line chart with entities values over years
+* **OWIDBarChart**: Creates a bar chart with entities values for a specific year
+* **OWIDMap**: Creates a world map with entities (countries) values for a specific year
+...
+
+Note: This POC illustrates the concept with TrendChart and BarChart classes
+
+In the source code all visualization are Javascript (actually TypeScript) classes that are derived from a parent **OWIDChart** class which provides elements and functions that are common to all visualizations.
+
+Visualizations are represented as visual elements on the DOM which include a \<div> wrapper that contains a \<svg> element which alos contains a \<g> element that will be the main container for all elements that are especific to each chart (e.g. lines for TrendChart, rectangles for BarChart, ...)  
+
+<img width="1443" alt="image" src="https://user-images.githubusercontent.com/68602/193721282-f277048e-c751-4173-abf6-8137528e4e9c.png">
+
+Most of the visual elements are created, configured and transformed using D3js (https://d3js.org/) which has became the de-facto library for data visualization.
+
+Each Visualization class provides a series of methods that allow the user to provide specific configuration.  
+
+For example, to create a trendChart that has "years" as the unit and a total width of 1000 pixels, we would use:
+<pre>
+const myTrendChart = owidVis.OWIDTrendChart(data).unit("years").width(1000)
+</pre>
+
+The *node()* method will export the DOM element (\<div>) that can be embedded in a html document.
+  
+ owidVis.OWIDTrendChart(data).node()
+
 
 ## Characteristics of OWID data
 
@@ -69,7 +97,6 @@ Current OWID Grappher consumes data from a MySQL database that is publicly distr
 
 Once the user has selected a domain and dataset (e.g. "World Development Indicators - Economic Policy & Debt") and a specific variable from that dataset  (e.g. "GDP per capita, PPP (constant 2011 international $)") then we are dealing with data values that can be exemplefied by the following table:
 
-<img width="462" alt="image" src="https://user-images.githubusercontent.com/68602/193715399-22af89ec-572e-4cbd-a887-9872beaf4108.png">
 
 The key dimensions for our visualization purposes are
 * **entity name** (categorical)
@@ -83,32 +110,6 @@ The most common messages that we would like to communicate in our visualizations
 - Rankings: the relative size and order of the metrics for different entities (bar charts)
 - Geography: how is the relative size of the metric distributed in the world (maps)
 
-
-## Anatomy of an OWID visualization
-
-A visualization is a conceptual entity that usually contains the following elements:
-- A graphical repesentation in a 2D plane that takes advantage of visual variables (size, position, shape , color) to represent magnitudes, trends, relationships, ...
-- Axis that communicate the relationship between domain values (e.g. age, income) and phisical ranges in the chart (vertical / horizontal position)
-- Legends that map colors to categorical variables (e.g. countries)
-- Titles / subtitles
-- Annotations
-- Tooltips
-
-In contrete "browser" terms, the visualization is represented as a DOM element (e.g. a <div>) that can be embedded in a html page. Usualli visualizations are created with <svg> elements that offer great flexibility to represent (and manage) visual representations inside an html page.
-  
-A <svg> element can contain diffrerent visual elements (circles, rectangles, linespaths, text) that are located in a x/y coordinate system within the <svg> container.  We can also insert a <g> container in the <svg> element (or inside another <g> element) which provides a local coordinate system (a rect within a <g> has a positiomn relative to its parent).
-  
-In general our visualizations will have the following framework:
-  
-  <img width="1443" alt="image" src="https://user-images.githubusercontent.com/68602/193721282-f277048e-c751-4173-abf6-8137528e4e9c.png">
-  
-Our chart container is a <div> element that can be embedded in any "html wrapper" that will contain the visualization.
-
-The <svg> element will define the absolute dimensions of the visualization (height & width) and will contain a main <g> container which is ultimately the elemengt where we will *draw* our visual representations.
-  
-Our <g> container usually has *margins* that define space for axis, labels and titles that are placed out beyond the boundaries of our main visualization.
-  
-  
 
 
 
