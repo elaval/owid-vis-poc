@@ -3,7 +3,43 @@
 
 Our World in Data (OWID) is an initiative that aims at **research and data to make progress against the world’s largest problems**.  They collect and mantain hundreds of datasets from worlwide public data that is transformed into meaningful information via evidence based articles and data visualisations.
 
-They currently have a powerful visualization tool - OWID Grapher - that has been designed to easily create, and publish, visualization information on top of their datasets.  Grapher is a great tool, but it si possible to complement it with new depelopments.
+They currently have a visualization tool - OWID Grapher (https://github.com/owid/owid-grapher) - that has been designed to easily create, and publish, visualizations in a consistent format for different datasets.
+
+But Grapher authors mention that
+
+> "This repo is currently not well-designed for reuse as a visualization library, nor for reproducing the full production environment we have at Our World in Data, as our tools are tightly coupled with our database structure."
+
+My objective with **owid-vis-pc** is to explore an alterantive approach for creating a suite of visualization components that would:
+* Allow for easy reutilization (a javascrip library that can be easily applied to projects)
+* Decouple the visualization tools from the database
+* Be designed specially for OWID data (mainy data that has year / entity dimensions and numeric values)
+* Be simple to understand and easily expanded vi visualization developers
+
+## Quick overview
+
+My idea is that we would develop a javascript library that will be easily distributed by standard channels (e.g. nmp @elaval/owid-vis-poc) and when imported in a javascript project it can be used as easily as:
+
+<pre>
+
+  // Let's assume thet we have already retreived the data for a specific varaible
+  const data = [
+    {entityName: "United Kingdom", year: 1990, value:73.2},
+    ...
+  ]
+
+  const chartEL = owidVis.lineChart(data).unit("years").node():
+  document.getElementById("owidChart").appendChild(chartEL);
+  
+  &lt;div id="owidChart">&lt;/div>
+
+</pre>
+
+<img width="933" alt="image" src="https://user-images.githubusercontent.com/68602/194140362-e61b3a0f-6c05-49bc-ae90-491a99d59dce.png">
+
+In tools such as observablehq.com it 
+
+
+If we want to give another step to allow "democratize" visualizations associated to OWID data, we could work on a Javascript library that makes it easy to build and embbed visualizations as poart  
 
 This respository contains a very simple prototype that I developed to play with some ideas.  I imagine an OWID Javascript charting tool that has the following features:
 
