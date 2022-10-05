@@ -36,6 +36,12 @@ export declare class OWIDChart {
     protected baseStartupSettings(): void;
     protected startupSettings(): void;
     /**
+   * Gets / sets the data source
+   * @param data
+   * @returns current data | current OWIDBarChart object
+   */
+    data(data: []): OWIDChart | [];
+    /**
      * Gets / sets the total chart width
      * @param width
      * @returns current width | current OWIDBarChart object

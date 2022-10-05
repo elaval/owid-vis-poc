@@ -17,6 +17,12 @@ export declare class OWIDTrendChart extends OWIDChart {
     constructor(data: any, options: any);
     protected startupSettings(): void;
     render(): void;
+    /**
+     * Gets / sets the callback function for selectedYear
+     * @param _selectedYearCallback
+     * @returns
+     */
+    selectedYearCallback(callback: Function): OWIDTrendChart | Function;
     handleMouseMove(e: any): void;
     handleMouseLeave(): void;
     getDimensionValues(dimension: string): any;
@@ -27,5 +33,4 @@ export declare class OWIDTrendChart extends OWIDChart {
     showGridY(): void;
     getClosestYear(posX: number): number;
     node(): any;
-    css(): string;
 }

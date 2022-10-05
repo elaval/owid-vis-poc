@@ -53,9 +53,6 @@ export class OWIDChart {
             .attr("style", "position: relative; clear: both;");
         this._chartSVG = this._chartContainer
             .append("svg");
-        this._chartContainer
-            .append("div")
-            .attr("class", "tooltipContainer");
         this.setupSVGElements();
         this.baseStartupSettings();
     }
@@ -146,6 +143,22 @@ export class OWIDChart {
     }
     startupSettings() {
         this.baseStartupSettings();
+    }
+    /**
+   * Gets / sets the data source
+   * @param data
+   * @returns current data | current OWIDBarChart object
+   */
+    data(data) {
+        if (arguments.length) {
+            this._data = data;
+            this.startupSettings();
+            this.render();
+            return this;
+        }
+        else {
+            return this._data;
+        }
     }
     /**
      * Gets / sets the total chart width

@@ -1,15 +1,13 @@
 import * as d3 from "d3";
 export class OWIDTrendChartTooltip {
     colorScale;
-    tooltipContainer;
     toolTip;
     containerWidth;
     constructor(options) {
         this.colorScale =
             (options && options.colorScale) || d3.scaleOrdinal(d3.schemeCategory10);
         this.containerWidth = (options && options.containerWidth) || 800;
-        this.tooltipContainer = d3.create("div").attr("class", "tooltip-container");
-        this.toolTip = this.tooltipContainer
+        this.toolTip = d3.create("div")
             .attr("class", "Tooltip")
             .style("display", "none")
             .style("position", "absolute")
@@ -40,12 +38,12 @@ export class OWIDTrendChartTooltip {
             .call((table) => table.append("tbody"));
     }
     render() {
-        return this.tooltipContainer;
+        return this.toolTip;
     }
     show(pos, options) {
         const year = options && options.year;
         const data = options && options.data;
-        this.tooltipContainer
+        this.toolTip
             .style("display", "block")
             .style("top", `${pos[1]}px`)
             .style("left", `${pos[0]}px`);
@@ -78,14 +76,14 @@ export class OWIDTrendChartTooltip {
             update.select("td.value").text((d) => d.value);
         });
         // Check if tooltip goes beyond right border
-        const tooltipWidth = this.tooltipContainer
+        const tooltipWidth = this.toolTip
             .node()
             .getBoundingClientRect().width;
         if (pos[0] > this.containerWidth - tooltipWidth) {
-            this.tooltipContainer.style("left", `${pos[0] - tooltipWidth - 30}px`);
+            this.toolTip.style("left", `${pos[0] - tooltipWidth - 30}px`);
         }
     }
     hide() {
-        this.tooltipContainer.style("display", "none");
+        this.toolTip.style("display", "none");
     }
 }

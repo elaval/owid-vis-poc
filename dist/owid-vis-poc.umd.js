@@ -21496,9 +21496,6 @@ class OWIDChart {
             .attr("style", "position: relative; clear: both;");
         this._chartSVG = this._chartContainer
             .append("svg");
-        this._chartContainer
-            .append("div")
-            .attr("class", "tooltipContainer");
         this.setupSVGElements();
         this.baseStartupSettings();
     }
@@ -21589,6 +21586,22 @@ class OWIDChart {
     }
     startupSettings() {
         this.baseStartupSettings();
+    }
+    /**
+   * Gets / sets the data source
+   * @param data
+   * @returns current data | current OWIDBarChart object
+   */
+    data(data) {
+        if (arguments.length) {
+            this._data = data;
+            this.startupSettings();
+            this.render();
+            return this;
+        }
+        else {
+            return this._data;
+        }
     }
     /**
      * Gets / sets the total chart width
@@ -21688,15 +21701,13 @@ class OWIDChart {
 
 class OWIDTrendChartTooltip {
     colorScale;
-    tooltipContainer;
     toolTip;
     containerWidth;
     constructor(options) {
         this.colorScale =
             (options && options.colorScale) || ordinal(schemeCategory10);
         this.containerWidth = (options && options.containerWidth) || 800;
-        this.tooltipContainer = create$1("div").attr("class", "tooltip-container");
-        this.toolTip = this.tooltipContainer
+        this.toolTip = create$1("div")
             .attr("class", "Tooltip")
             .style("display", "none")
             .style("position", "absolute")
@@ -21727,12 +21738,12 @@ class OWIDTrendChartTooltip {
             .call((table) => table.append("tbody"));
     }
     render() {
-        return this.tooltipContainer;
+        return this.toolTip;
     }
     show(pos, options) {
         const year = options && options.year;
         const data = options && options.data;
-        this.tooltipContainer
+        this.toolTip
             .style("display", "block")
             .style("top", `${pos[1]}px`)
             .style("left", `${pos[0]}px`);
@@ -21765,15 +21776,15 @@ class OWIDTrendChartTooltip {
             update.select("td.value").text((d) => d.value);
         });
         // Check if tooltip goes beyond right border
-        const tooltipWidth = this.tooltipContainer
+        const tooltipWidth = this.toolTip
             .node()
             .getBoundingClientRect().width;
         if (pos[0] > this.containerWidth - tooltipWidth) {
-            this.tooltipContainer.style("left", `${pos[0] - tooltipWidth - 30}px`);
+            this.toolTip.style("left", `${pos[0] - tooltipWidth - 30}px`);
         }
     }
     hide() {
-        this.tooltipContainer.style("display", "none");
+        this.toolTip.style("display", "none");
     }
 }
 
@@ -21922,6 +21933,20 @@ class OWIDTrendChart extends OWIDChart {
             .attr("fill", (d) => this._scaleColor(d.entityName))
             .text((d) => d.entityName);
     }
+    /**
+     * Gets / sets the callback function for selectedYear
+     * @param _selectedYearCallback
+     * @returns
+     */
+    selectedYearCallback(callback) {
+        if (arguments.length) {
+            this._selectedYearCallback = callback;
+            return this;
+        }
+        else {
+            return this._selectedYearCallback;
+        }
+    }
     handleMouseMove(e) {
         const pos_relTarget = pointer(e);
         const pos_relContainer = pointer(e, this._chartContainer);
@@ -22021,142 +22046,6 @@ class OWIDTrendChart extends OWIDChart {
     }
     node() {
         return this._chartContainer.node();
-    }
-    css() {
-        const inlineCss = `
-
-        .chartContainer {
-          display: block;
-          background: white;
-          height: auto;
-          height: intrinsic;
-          max-width: 100%;
-        }
-
-        .${this._className} {
-            display: block;
-            background: white;
-            height: auto;
-            height: intrinsic;
-            max-width: 100%;
-        }
-        .${this._className} text,
-        .${this._className} tspan {
-            white-space: pre;
-        }
-        .${this._className} .axis text {
-            white-space: pre;    font-size: 16.2px;
-            fill: rgb(102, 102, 102);        
-        }
-
-        .${this._className} .axis path {
-            display: none
-        }
-        .${this._className} .axis.y line {
-            display: none
-        }
-
-        .GrapherComponent {
-            display: inline-block;
-            border-bottom: none;
-            border-radius: 2px;
-            text-align: left;
-
-            line-height: 1em;
-
-            background: white;
-            color: #333;
-
-            position: relative;
-
-            /* Hidden overflow x so that tooltips don't cause scrollbars 
-            overflow: hidden;
-
-            border-radius: 2px;
-            box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 2px 0px,
-                rgba(0, 0, 0, 0.25) 0px 2px 2px 0px;
-            z-index: $zindex-chart;
-
-            * {
-                box-sizing: border-box;
-            }
-
-            button {
-                background: none;
-                border: none;
-            }
-
-            .btn {
-                font-size: 0.8em;
-                white-space: normal;
-            }
-
-            .flash {
-                margin: 10px;
-            }
-
-            .clickable {
-                cursor: pointer;
-
-                a {
-                    text-decoration: none;
-                    &:visited {
-                        color: initial;
-                    }
-                }
-            }
-            input[type="checkbox"] {
-                cursor: pointer;
-            }
-
-            /* Make World line slightly thicker 
-            svg .key-World_0 polyline {
-                stroke-width: 2 !important;
-            }
-
-            .projection .nv-line {
-                stroke-dasharray: 3, 3;
-            }
-
-            .projection .nv-point {
-                fill: #fff;
-                stroke-width: 1;
-                opacity: 0.5;
-            }
-
-            .projection .nv-point.hover {
-                stroke-width: 4;
-            }
-
-            a {
-                cursor: pointer;
-                color: #0645ad;
-                fill: #0645ad;
-                border-bottom: none;
-            }
-
-            h2 {
-                font-size: 2em;
-                margin-top: 0;
-                margin-bottom: 0.8em;
-                font-weight: 500;
-                line-height: 1.1;
-            }
-
-            .unstroked {
-                display: none;
-            }
-
-            .DownloadTab,
-            .tableTab,
-            .sourcesTab {
-                z-index: $zindex-tab;
-            }
-        }
-
-
-        `;
-        return inlineCss;
     }
 }
 
@@ -22485,20 +22374,6 @@ class OWIDBarChart extends OWIDChart {
     }
 }
 
-function OWIDPlot(data, options) {
-    const type = options && options.type || "trendChart";
-    if (type == "trendChart") {
-        let chart = new OWIDTrendChart(data, options);
-        return chart.render();
-    }
-    else if (type == "barChart") {
-        let chart = new OWIDBarChart(data, options);
-        return chart.render();
-    }
-    else {
-        return null;
-    }
-}
 function trendChart(data, options) {
     return new OWIDTrendChart(data, options);
 }
@@ -22506,7 +22381,6 @@ function barChart(data, options) {
     return new OWIDBarChart(data, options);
 }
 
-exports.OWIDPlot = OWIDPlot;
 exports.barChart = barChart;
 exports.trendChart = trendChart;
 exports.version = version;
