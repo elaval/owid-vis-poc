@@ -8,119 +8,123 @@ import { baseCSS } from './OWIDBaseChartCSS';
 import { config
  } from './OWIDBaseChartConfig';
 export class OWIDBaseChart {
-    data: [] = [];
-    height:number;
-    width: number;
-    marginTop: number = config.marginTop;
-    marginBottom: number = config.marginBottom;
-    marginLeft: number = config.marginLeft;
-    marginRight: number = config.marginRight;
+  protected _data: [] = [];
 
-    heightTotal: number = config.heightTotal;
-    widthTotal: number = config.widthTotal;
 
-    unit: String;
-    className: string;
-    valuesRange: [any, any];
-    dimensions: { years: any; entities: any; };
-    scaleColor: d3.ScaleOrdinal<string, string, never>;
+  protected _height:number;
+  protected _width: number;
+  protected _marginTop: number = config.marginTop;
+  protected _marginBottom: number = config.marginBottom;
+  protected _marginLeft: number = config.marginLeft;
+  protected _marginRight: number = config.marginRight;
 
-    chartContainer: d3.Selection<any, undefined, null, undefined>;
-    chartSVG: any;
-    toolTip: any;
-    colorScale: any;
-    chartContent: any;
+  protected _heightTotal: number = config.heightTotal;
+  protected _widthTotal: number = config.widthTotal;
 
-    x: any;
-    y: any;
+  protected _unit: String;
+  protected _className: string;
+  protected _valuesRange: [any, any];
+  protected _dimensions: { years: any; entities: any; };
+  protected _scaleColor: d3.ScaleOrdinal<string, string, never>;
+
+  protected _chartContainer: d3.Selection<any, undefined, null, undefined>;
+  protected _chartSVG: any;
+  protected _toolTip: any;
+  protected _colorScale: any;
+  protected _chartContent: any;
+
+  protected _x: any;
+  protected _y: any;
 
   constructor(data: any, options: any) {
-      this.data = data;
+      this._data = data;
 
-      this.widthTotal = (options && options.width) || this.widthTotal;
-      this.heightTotal = (options && options.height) || this.heightTotal;
+      this._widthTotal = (options && options.width) || this._widthTotal;
+      this._heightTotal = (options && options.height) || this._heightTotal;
 
-      this.marginTop = (options && options.marginTop) || this.marginTop;
-      this.marginBottom = (options && options.marginBottom) || this.marginBottom;
-      this.marginLeft = (options && options.marginLeft) || this.marginLeft;
-      this.marginTop = (options && options.marginTop) || this.marginTop;
+      this._marginTop = (options && options.marginTop) || this._marginTop;
+      this._marginBottom = (options && options.marginBottom) || this._marginBottom;
+      this._marginLeft = (options && options.marginLeft) || this._marginLeft;
+      this._marginTop = (options && options.marginTop) || this._marginTop;
 
-      this.height = this.heightTotal-this.marginBottom- this.marginTop;
-      this.width = this.widthTotal-this.marginLeft-this.marginRight;
+      this._height = this._heightTotal-this._marginBottom- this._marginTop;
+      this._width = this._widthTotal-this._marginLeft-this._marginRight;
 
-      this.y = (options && options.y) || {};
-      this.x = (options && options.x) || {};
+      this._y = (options && options.y) || {};
+      this._x = (options && options.x) || {};
 
-      this.unit = (options && options.unit) || "";
-      this.className = "owidChart";
-      this.unit = (options && options.unit) || "";
+      this._unit = (options && options.unit) || "";
+      this._className = "owidChart";
+      this._unit = (options && options.unit) || "";
     
-      this.valuesRange = d3.extent(this.data, (d:any) => d.value);
+      this._valuesRange = d3.extent(this._data, (d:any) => d.value);
   
-      this.dimensions = {
+      this._dimensions = {
         years: (options && options.years) || this.getDimensionValues("year"),
         entities:
           (options && options.enitites) || this.getDimensionValues("entityName")
       };
   
-      this.scaleColor = d3.scaleOrdinal(config.colorScheme);
+      this._scaleColor = d3.scaleOrdinal(config.colorScheme);
 
   
-      this.chartContainer = d3
+      this._chartContainer = d3
         .create("div")
         .attr("class", "chartContainer")
         .attr("style", "position: relative; clear: both;");
 
-      this.chartSVG = this.chartContainer
+      this._chartSVG = this._chartContainer
         .append("svg");
 
-      this.chartContainer
+      this._chartContainer
         .append("div")
         .attr("class","tooltipContainer");
       
-      this.setupSVGElements(this.chartSVG);
+      this.setupSVGElements(this._chartSVG);
     
     }
 
     setupSVGElements(svg:d3.Selection<any, any, any, any>): any {
         svg
-          .attr("class", this.className)
+          .attr("class", this._className)
           .attr("fill", "currentColor")
           .attr("font-family", "system-ui, sans-serif")
           .attr("font-size", 10)
           .attr("text-anchor", "middle")
-          .attr("width", this.widthTotal)
-          .attr("height", this.heightTotal)
+          .attr("width", this._widthTotal)
+          .attr("height", this._heightTotal)
           .attr(
             "viewBox",
-            `0 0 ${this.widthTotal} ${this.heightTotal}`
+            `0 0 ${this._widthTotal} ${this._heightTotal}`
           )
           .call((svg) => svg.append("style").text(this.css()))
           .call((svg) =>
             svg
               .append("rect")
-              .attr("width", this.widthTotal)
-              .attr("height", this.heightTotal)
+              .attr("width", this._widthTotal)
+              .attr("height", this._heightTotal)
               .attr("fill", "white")
           );
     
-        const mainContainer = svg
-          .append("g")
+        // If it does not already exists, we add a <g> element that will be the main container
+        const mainContainer = svg.selectAll("g.container")
+          .data([null])  // we will use D· data joins to create a single instance of the element
+          .join("g")
           .attr("class", "container")
-          .attr("transform", `translate(${this.marginLeft}, ${this.marginTop})`)
+          .attr("transform", `translate(${this._marginLeft}, ${this._marginTop})`)
           .call((g) =>
             g
               .append("rect")
               .attr("class", "backgroundLayer")
-              .attr("width", this.width)
-              .attr("height", this.height)
+              .attr("width", this._width)
+              .attr("height", this._height)
               .attr("fill", "white")
           )
           .call((g) =>
             g
               .append("g")
               .attr("class", "axis x")
-              .attr("transform", `translate(${0}, ${this.height})`)
+              .attr("transform", `translate(${0}, ${this._height})`)
           )
           .call((g) =>
             g
@@ -139,48 +143,47 @@ export class OWIDBaseChart {
       }
 
     /**
-     * updateDimensions
+     * updateSizeAndMargins
      * Updated charts internat height / width dimensons based on current margins
      */
-    updateDimensions() {
+    updateSizeAndMargins() {
  
       // Applies new left margin to our chart main <g> container
-      this.chartContainer.select("svg")
+      this._chartContainer.select("svg")
       .select("g.container")
-      .attr("transform", `translate(${this.marginLeft}, ${this.marginTop})`);
+      .attr("transform", `translate(${this._marginLeft}, ${this._marginTop})`);
 
-      this.chartContainer.select("svg")
+      this._chartContainer.select("svg")
       .select("g.container")
       .select("rect.backgroundLayer")
-      .attr("width", this.width)
-      .attr("height", this.height);
+      .attr("width", this._width)
+      .attr("height", this._height);
 
-      this.chartContainer.select("svg")
+      this._chartContainer.select("svg")
       .select("g.axis.x")
-      .attr("transform", `translate(${0}, ${this.height})`)
+      .attr("transform", `translate(${0}, ${this._height})`)
 
     }
 
     handleMouseMove(e: any): void {
         const pos_relTarget = d3.pointer(e);
-        const pos_relContainer = d3.pointer(e, this.chartContainer);
+        const pos_relContainer = d3.pointer(e, this._chartContainer);
     }
 
     handleMouseLeave(): void {
-        this.chartContent && this.chartContent.hideMarker();
+        this._chartContent && this._chartContent.hideMarker();
     }
 
 
-    getDimensionValues(dimension: string): any {
-        return _.chain(this.data)
+    protected getDimensionValues(dimension: string): any {
+        return _.chain(this._data)
         .map((d: { [x: string]: any; }) => d[dimension])
         .uniq()
         .value();
     }
 
 
-
-    getTextWidth(text: any, fontSize: string | number, fontFace: string):number {
+    protected getTextWidth(text: any, fontSize: string | number, fontFace: string):number {
         const canvas = document.createElement("canvas"),
           context = canvas.getContext("2d");
 
@@ -198,7 +201,7 @@ export class OWIDBaseChart {
 
 
     render() {
-        return this.chartContainer.node();
+        return this._chartContainer.node();
     }
 
  

@@ -5,64 +5,67 @@ import { OWIDTrendChartLines } from "./OWIDTrendChartLines";
 import { OWIDTrendChartTooltip } from "./OWIDTrendChartTooltip";
 import { config } from './OWIDTrendChartConfig';
 export class OWIDTrendChart extends OWIDBaseChart {
-    scaleX;
-    scaleY;
-    axisX;
-    axisY;
-    seriesData;
+    scaleX = d3.scaleLinear();
+    scaleY = d3.scaleLinear();
+    axisX = d3.axisBottom(this.scaleX);
+    axisY = d3.axisLeft(this.scaleY);
+    seriesData = [];
     selectedYearCallback;
     constructor(data, options) {
         super(data, options);
-        this.marginBottom = config.marginBottom;
-        this.height = this.heightTotal - this.marginTop - this.marginBottom;
-        this.valuesRange = d3.extent(this.data, (d) => d.value);
-        this.dimensions = {
+        this._dimensions = {
             years: (options && options.years) || this.getDimensionValues("year"),
             entities: (options && options.enitites) || this.getDimensionValues("entityName")
         };
-        this.scaleX = d3.scaleLinear().range([0, this.width]);
+        this._marginLeft =
+            (options && options.marginLeft) || this.calculateMarginLeft() * 1.5;
+        this._marginRight =
+            (options && options.marginRight) || this.calculateMarginRight() * 1.5;
+        this.selectedYearCallback = options && options.selectedYearCallback || function () { };
+        this.startupSettings();
+    }
+    startupSettings() {
+        this._marginBottom = config.marginBottom;
+        this._height = this._heightTotal - this._marginTop - this._marginBottom;
+        this._valuesRange = d3.extent(this._data, (d) => d.value);
+        this.scaleX = d3.scaleLinear().range([0, this._width]);
         this.scaleY = d3
             .scaleLinear()
-            .range([this.height, 0])
-            .domain(this.valuesRange);
+            .range([this._height, 0])
+            .domain(this._valuesRange);
         this.axisX = d3.axisBottom(this.scaleX).ticks(10, "d");
         this.axisY = d3
             .axisLeft(this.scaleY)
             .ticks(10)
-            .tickFormat((d) => `${d} ${this.unit}`);
-        this.marginLeft =
-            (options && options.marginLeft) || this.calculateMarginLeft() * 1.5;
-        this.marginRight =
-            (options && options.marginRight) || this.calculateMarginRight() * 1.5;
-        this.width = this.widthTotal - this.marginLeft - this.marginRight;
-        this.updateDimensions();
-        this.scaleX.range([0, this.width]);
-        this.scaleY.range([this.height, 0]);
-        this.seriesData = _.chain(this.data)
+            .tickFormat((d) => `${d} ${this._unit}`);
+        this._width = this._widthTotal - this._marginLeft - this._marginRight;
+        super.updateSizeAndMargins();
+        this.scaleX.range([0, this._width]);
+        this.scaleY.range([this._height, 0]);
+        this.seriesData = _.chain(this._data)
             .groupBy((d) => d.entityName)
             .map((items, entityName) => ({ name: entityName, data: items }))
             .value();
-        this.toolTip = new OWIDTrendChartTooltip({ colorScale: this.colorScale, containerWidth: this.width });
-        this.chartContainer.node().appendChild(this.toolTip.render().node());
-        this.selectedYearCallback = options && options.selectedYearCallback || function () { };
-        if (this.y && this.y.grid) {
+        this._toolTip = new OWIDTrendChartTooltip({ colorScale: this._colorScale, containerWidth: this._width });
+        this._chartContainer.node().appendChild(this._toolTip.render().node());
+        if (this._y && this._y.grid) {
             this.showGridY();
         }
-        if (this.x && this.x.grid) {
+        if (this._x && this._x.grid) {
             this.showGridX();
         }
         this.setupTrendSVGElements();
     }
     setupTrendSVGElements() {
-        const mainContainer = this.chartContainer.select("svg").select("g.container");
+        const mainContainer = this._chartContainer.select("svg").select("g.container");
         mainContainer
             .select("rect.backgroundLayer")
             .on("mousemove", (e) => this.handleMouseMove(e))
             .on("mouseleave", () => this.handleMouseLeave());
-        this.chartContent = new OWIDTrendChartLines(this.data, {
-            scaleColor: this.scaleColor
+        this._chartContent = new OWIDTrendChartLines(this._data, {
+            scaleColor: this._scaleColor
         });
-        const chartContentEL = this.chartContent.render({
+        const chartContentEL = this._chartContent.render({
             x: this.scaleX,
             y: this.scaleY
         });
@@ -73,9 +76,9 @@ export class OWIDTrendChart extends OWIDBaseChart {
     }
     handleMouseMove(e) {
         const pos_relTarget = d3.pointer(e);
-        const pos_relContainer = d3.pointer(e, this.chartContainer);
+        const pos_relContainer = d3.pointer(e, this._chartContainer);
         const selectedYear = this.getClosestYear(pos_relTarget[0]);
-        this.chartContent && this.chartContent.showMarker(selectedYear);
+        this._chartContent && this._chartContent.showMarker(selectedYear);
         const tooltipData = _.chain(this.seriesData)
             .map((d) => {
             const yearRecord = d.data.find((d) => d.year == selectedYear);
@@ -86,18 +89,18 @@ export class OWIDTrendChart extends OWIDBaseChart {
         })
             .sortBy((d) => -d.value)
             .value();
-        this.toolTip.show([pos_relContainer[0], this.height * 0.25], {
+        this._toolTip.show([pos_relContainer[0], this._height * 0.25], {
             year: selectedYear,
             data: tooltipData
         });
         this.selectedYearCallback(selectedYear);
     }
     handleMouseLeave() {
-        this.chartContent && this.chartContent.hideMarker();
-        this.toolTip.hide();
+        this._chartContent && this._chartContent.hideMarker();
+        this._toolTip.hide();
     }
     getDimensionValues(dimension) {
-        return _.chain(this.data)
+        return _.chain(this._data)
             .map((d) => d[dimension])
             .uniq()
             .value();
@@ -105,13 +108,13 @@ export class OWIDTrendChart extends OWIDBaseChart {
     calculateMarginLeft() {
         const axisScale = this.axisY.scale();
         const values = axisScale.ticks();
-        const tickContent = values.map((d) => `${d} ${this.unit}`);
+        const tickContent = values.map((d) => `${d} ${this._unit}`);
         const tickSizes = tickContent.map((d) => this.getTextWidth(d, 16.2, "sans-serif"));
         const maxSize = _.max(tickSizes);
         return maxSize || 10;
     }
     calculateMarginRight() {
-        const entityNames = this.dimensions.entities;
+        const entityNames = this._dimensions.entities;
         const legendContent = entityNames.map((d) => `${d}`);
         const legendSized = legendContent.map((d) => this.getTextWidth(d, 16.2, "sans-serif"));
         const maxSize = _.max(legendSized);
@@ -129,7 +132,7 @@ export class OWIDTrendChart extends OWIDBaseChart {
     showGridX() {
         const axisScale = this.axisX.scale();
         const gridValues = axisScale.ticks();
-        this.chartSVG
+        this._chartSVG
             .select("g.container")
             .append("g")
             .attr("class", "grid x")
@@ -140,7 +143,7 @@ export class OWIDTrendChart extends OWIDBaseChart {
             .attr("x1", (d) => this.scaleX(d))
             .attr("x2", (d) => this.scaleX(d))
             .attr("y1", 0)
-            .attr("y2", this.height)
+            .attr("y2", this._height)
             .attr("stroke-dasharray", "3,2")
             .attr("stroke-width", 1)
             .attr("stroke", "lightgrey");
@@ -148,7 +151,7 @@ export class OWIDTrendChart extends OWIDBaseChart {
     showGridY() {
         const axisScale = this.axisY.scale();
         const gridValues = axisScale.ticks();
-        this.chartSVG
+        this._chartSVG
             .select("g.container")
             .append("g")
             .attr("class", "grid y")
@@ -157,7 +160,7 @@ export class OWIDTrendChart extends OWIDBaseChart {
             .join("line")
             .attr("class", "grid y")
             .attr("x1", 0)
-            .attr("x2", this.width)
+            .attr("x2", this._width)
             .attr("y1", (d) => this.scaleY(d))
             .attr("y2", (d) => this.scaleY(d))
             .attr("stroke-dasharray", "3,2")
@@ -165,11 +168,11 @@ export class OWIDTrendChart extends OWIDBaseChart {
             .attr("stroke", "lightgrey");
     }
     getClosestYear(posX) {
-        const closestYear = this.dimensions.years.find((d) => d == Math.round(this.scaleX.invert(posX)));
+        const closestYear = this._dimensions.years.find((d) => d == Math.round(this.scaleX.invert(posX)));
         return closestYear;
     }
     render() {
-        return this.chartContainer.node();
+        return this._chartContainer.node();
     }
     css() {
         const inlineCss = `
@@ -182,26 +185,26 @@ export class OWIDTrendChart extends OWIDBaseChart {
           max-width: 100%;
         }
 
-        .${this.className} {
+        .${this._className} {
             display: block;
             background: white;
             height: auto;
             height: intrinsic;
             max-width: 100%;
         }
-        .${this.className} text,
-        .${this.className} tspan {
+        .${this._className} text,
+        .${this._className} tspan {
             white-space: pre;
         }
-        .${this.className} .axis text {
+        .${this._className} .axis text {
             white-space: pre;    font-size: 16.2px;
             fill: rgb(102, 102, 102);        
         }
 
-        .${this.className} .axis path {
+        .${this._className} .axis path {
             display: none
         }
-        .${this.className} .axis.y line {
+        .${this._className} .axis.y line {
             display: none
         }
 

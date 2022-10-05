@@ -1,11 +1,11 @@
-// @elaval/owid-vis-poc v0.1.1 Copyright 
+// @elaval/owid-vis-poc v0.1.2 Copyright 
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
 (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.owidVis = global.owidVis || {}));
 })(this, (function (exports) { 'use strict';
 
-var version = "0.1.1";
+var version = "0.1.2";
 
 function ascending$1(a, b) {
   return a == null || b == null ? NaN : a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -21447,88 +21447,90 @@ const config$2 = {
 };
 
 class OWIDBaseChart {
-    data = [];
-    height;
-    width;
-    marginTop = config$2.marginTop;
-    marginBottom = config$2.marginBottom;
-    marginLeft = config$2.marginLeft;
-    marginRight = config$2.marginRight;
-    heightTotal = config$2.heightTotal;
-    widthTotal = config$2.widthTotal;
-    unit;
-    className;
-    valuesRange;
-    dimensions;
-    scaleColor;
-    chartContainer;
-    chartSVG;
-    toolTip;
-    colorScale;
-    chartContent;
-    x;
-    y;
+    _data = [];
+    _height;
+    _width;
+    _marginTop = config$2.marginTop;
+    _marginBottom = config$2.marginBottom;
+    _marginLeft = config$2.marginLeft;
+    _marginRight = config$2.marginRight;
+    _heightTotal = config$2.heightTotal;
+    _widthTotal = config$2.widthTotal;
+    _unit;
+    _className;
+    _valuesRange;
+    _dimensions;
+    _scaleColor;
+    _chartContainer;
+    _chartSVG;
+    _toolTip;
+    _colorScale;
+    _chartContent;
+    _x;
+    _y;
     constructor(data, options) {
-        this.data = data;
-        this.widthTotal = (options && options.width) || this.widthTotal;
-        this.heightTotal = (options && options.height) || this.heightTotal;
-        this.marginTop = (options && options.marginTop) || this.marginTop;
-        this.marginBottom = (options && options.marginBottom) || this.marginBottom;
-        this.marginLeft = (options && options.marginLeft) || this.marginLeft;
-        this.marginTop = (options && options.marginTop) || this.marginTop;
-        this.height = this.heightTotal - this.marginBottom - this.marginTop;
-        this.width = this.widthTotal - this.marginLeft - this.marginRight;
-        this.y = (options && options.y) || {};
-        this.x = (options && options.x) || {};
-        this.unit = (options && options.unit) || "";
-        this.className = "owidChart";
-        this.unit = (options && options.unit) || "";
-        this.valuesRange = extent(this.data, (d) => d.value);
-        this.dimensions = {
+        this._data = data;
+        this._widthTotal = (options && options.width) || this._widthTotal;
+        this._heightTotal = (options && options.height) || this._heightTotal;
+        this._marginTop = (options && options.marginTop) || this._marginTop;
+        this._marginBottom = (options && options.marginBottom) || this._marginBottom;
+        this._marginLeft = (options && options.marginLeft) || this._marginLeft;
+        this._marginTop = (options && options.marginTop) || this._marginTop;
+        this._height = this._heightTotal - this._marginBottom - this._marginTop;
+        this._width = this._widthTotal - this._marginLeft - this._marginRight;
+        this._y = (options && options.y) || {};
+        this._x = (options && options.x) || {};
+        this._unit = (options && options.unit) || "";
+        this._className = "owidChart";
+        this._unit = (options && options.unit) || "";
+        this._valuesRange = extent(this._data, (d) => d.value);
+        this._dimensions = {
             years: (options && options.years) || this.getDimensionValues("year"),
             entities: (options && options.enitites) || this.getDimensionValues("entityName")
         };
-        this.scaleColor = ordinal(config$2.colorScheme);
-        this.chartContainer = create$1("div")
+        this._scaleColor = ordinal(config$2.colorScheme);
+        this._chartContainer = create$1("div")
             .attr("class", "chartContainer")
             .attr("style", "position: relative; clear: both;");
-        this.chartSVG = this.chartContainer
+        this._chartSVG = this._chartContainer
             .append("svg");
-        this.chartContainer
+        this._chartContainer
             .append("div")
             .attr("class", "tooltipContainer");
-        this.setupSVGElements(this.chartSVG);
+        this.setupSVGElements(this._chartSVG);
     }
     setupSVGElements(svg) {
         svg
-            .attr("class", this.className)
+            .attr("class", this._className)
             .attr("fill", "currentColor")
             .attr("font-family", "system-ui, sans-serif")
             .attr("font-size", 10)
             .attr("text-anchor", "middle")
-            .attr("width", this.widthTotal)
-            .attr("height", this.heightTotal)
-            .attr("viewBox", `0 0 ${this.widthTotal} ${this.heightTotal}`)
+            .attr("width", this._widthTotal)
+            .attr("height", this._heightTotal)
+            .attr("viewBox", `0 0 ${this._widthTotal} ${this._heightTotal}`)
             .call((svg) => svg.append("style").text(this.css()))
             .call((svg) => svg
             .append("rect")
-            .attr("width", this.widthTotal)
-            .attr("height", this.heightTotal)
+            .attr("width", this._widthTotal)
+            .attr("height", this._heightTotal)
             .attr("fill", "white"));
-        const mainContainer = svg
-            .append("g")
+        // If it does not already exists, we add a <g> element that will be the main container
+        const mainContainer = svg.selectAll("g.container")
+            .data([null]) // we will use D· data joins to create a single instance of the element
+            .join("g")
             .attr("class", "container")
-            .attr("transform", `translate(${this.marginLeft}, ${this.marginTop})`)
+            .attr("transform", `translate(${this._marginLeft}, ${this._marginTop})`)
             .call((g) => g
             .append("rect")
             .attr("class", "backgroundLayer")
-            .attr("width", this.width)
-            .attr("height", this.height)
+            .attr("width", this._width)
+            .attr("height", this._height)
             .attr("fill", "white"))
             .call((g) => g
             .append("g")
             .attr("class", "axis x")
-            .attr("transform", `translate(${0}, ${this.height})`))
+            .attr("transform", `translate(${0}, ${this._height})`))
             .call((g) => g
             .append("g")
             .attr("class", "axis y")
@@ -21540,32 +21542,32 @@ class OWIDBaseChart {
         return svg;
     }
     /**
-     * updateDimensions
+     * updateSizeAndMargins
      * Updated charts internat height / width dimensons based on current margins
      */
-    updateDimensions() {
+    updateSizeAndMargins() {
         // Applies new left margin to our chart main <g> container
-        this.chartContainer.select("svg")
+        this._chartContainer.select("svg")
             .select("g.container")
-            .attr("transform", `translate(${this.marginLeft}, ${this.marginTop})`);
-        this.chartContainer.select("svg")
+            .attr("transform", `translate(${this._marginLeft}, ${this._marginTop})`);
+        this._chartContainer.select("svg")
             .select("g.container")
             .select("rect.backgroundLayer")
-            .attr("width", this.width)
-            .attr("height", this.height);
-        this.chartContainer.select("svg")
+            .attr("width", this._width)
+            .attr("height", this._height);
+        this._chartContainer.select("svg")
             .select("g.axis.x")
-            .attr("transform", `translate(${0}, ${this.height})`);
+            .attr("transform", `translate(${0}, ${this._height})`);
     }
     handleMouseMove(e) {
         pointer(e);
-        pointer(e, this.chartContainer);
+        pointer(e, this._chartContainer);
     }
     handleMouseLeave() {
-        this.chartContent && this.chartContent.hideMarker();
+        this._chartContent && this._chartContent.hideMarker();
     }
     getDimensionValues(dimension) {
-        return lodash.exports.chain(this.data)
+        return lodash.exports.chain(this._data)
             .map((d) => d[dimension])
             .uniq()
             .value();
@@ -21580,7 +21582,7 @@ class OWIDBaseChart {
         return textWidth;
     }
     render() {
-        return this.chartContainer.node();
+        return this._chartContainer.node();
     }
     css() {
         return baseCSS;
@@ -21819,62 +21821,65 @@ const config$1 = {
 };
 
 class OWIDTrendChart extends OWIDBaseChart {
-    scaleX;
-    scaleY;
-    axisX;
-    axisY;
-    seriesData;
+    scaleX = linear();
+    scaleY = linear();
+    axisX = axisBottom(this.scaleX);
+    axisY = axisLeft(this.scaleY);
+    seriesData = [];
     selectedYearCallback;
     constructor(data, options) {
         super(data, options);
-        this.marginBottom = config$1.marginBottom;
-        this.height = this.heightTotal - this.marginTop - this.marginBottom;
-        this.valuesRange = extent(this.data, (d) => d.value);
-        this.dimensions = {
+        this._dimensions = {
             years: (options && options.years) || this.getDimensionValues("year"),
             entities: (options && options.enitites) || this.getDimensionValues("entityName")
         };
-        this.scaleX = linear().range([0, this.width]);
+        this._marginLeft =
+            (options && options.marginLeft) || this.calculateMarginLeft() * 1.5;
+        this._marginRight =
+            (options && options.marginRight) || this.calculateMarginRight() * 1.5;
+        this.selectedYearCallback = options && options.selectedYearCallback || function () { };
+        this.startupSettings();
+    }
+    startupSettings() {
+        this._marginBottom = config$1.marginBottom;
+        this._height = this._heightTotal - this._marginTop - this._marginBottom;
+        this._valuesRange = extent(this._data, (d) => d.value);
+        this.scaleX = linear().range([0, this._width]);
         this.scaleY = linear()
-            .range([this.height, 0])
-            .domain(this.valuesRange);
+            .range([this._height, 0])
+            .domain(this._valuesRange);
         this.axisX = axisBottom(this.scaleX).ticks(10, "d");
         this.axisY = axisLeft(this.scaleY)
             .ticks(10)
-            .tickFormat((d) => `${d} ${this.unit}`);
-        this.marginLeft =
-            (options && options.marginLeft) || this.calculateMarginLeft() * 1.5;
-        this.marginRight =
-            (options && options.marginRight) || this.calculateMarginRight() * 1.5;
-        this.width = this.widthTotal - this.marginLeft - this.marginRight;
-        this.updateDimensions();
-        this.scaleX.range([0, this.width]);
-        this.scaleY.range([this.height, 0]);
-        this.seriesData = lodash.exports.chain(this.data)
+            .tickFormat((d) => `${d} ${this._unit}`);
+        this._width = this._widthTotal - this._marginLeft - this._marginRight;
+        super.updateSizeAndMargins();
+        this.scaleX.range([0, this._width]);
+        this.scaleY.range([this._height, 0]);
+        this.seriesData = lodash.exports.chain(this._data)
             .groupBy((d) => d.entityName)
             .map((items, entityName) => ({ name: entityName, data: items }))
             .value();
-        this.toolTip = new OWIDTrendChartTooltip({ colorScale: this.colorScale, containerWidth: this.width });
-        this.chartContainer.node().appendChild(this.toolTip.render().node());
-        this.selectedYearCallback = options && options.selectedYearCallback || function () { };
-        if (this.y && this.y.grid) {
+        this._toolTip = new OWIDTrendChartTooltip({ colorScale: this._colorScale, containerWidth: this._width });
+        this._chartContainer.node().appendChild(this._toolTip.render().node());
+        if (this._y && this._y.grid) {
             this.showGridY();
         }
-        if (this.x && this.x.grid) {
+        if (this._x && this._x.grid) {
             this.showGridX();
         }
         this.setupTrendSVGElements();
     }
     setupTrendSVGElements() {
-        const mainContainer = this.chartContainer.select("svg").select("g.container");
+        const mainContainer = this._chartContainer.select("svg").select("g.container");
         mainContainer
             .select("rect.backgroundLayer")
             .on("mousemove", (e) => this.handleMouseMove(e))
             .on("mouseleave", () => this.handleMouseLeave());
-        this.chartContent = new OWIDTrendChartLines(this.data, {
-            scaleColor: this.scaleColor
+        this._chartContent = new OWIDTrendChartLines(this._data, {
+            scaleColor: this._scaleColor
         });
-        const chartContentEL = this.chartContent.render({
+        const chartContentEL = this._chartContent.render({
             x: this.scaleX,
             y: this.scaleY
         });
@@ -21885,9 +21890,9 @@ class OWIDTrendChart extends OWIDBaseChart {
     }
     handleMouseMove(e) {
         const pos_relTarget = pointer(e);
-        const pos_relContainer = pointer(e, this.chartContainer);
+        const pos_relContainer = pointer(e, this._chartContainer);
         const selectedYear = this.getClosestYear(pos_relTarget[0]);
-        this.chartContent && this.chartContent.showMarker(selectedYear);
+        this._chartContent && this._chartContent.showMarker(selectedYear);
         const tooltipData = lodash.exports.chain(this.seriesData)
             .map((d) => {
             const yearRecord = d.data.find((d) => d.year == selectedYear);
@@ -21898,18 +21903,18 @@ class OWIDTrendChart extends OWIDBaseChart {
         })
             .sortBy((d) => -d.value)
             .value();
-        this.toolTip.show([pos_relContainer[0], this.height * 0.25], {
+        this._toolTip.show([pos_relContainer[0], this._height * 0.25], {
             year: selectedYear,
             data: tooltipData
         });
         this.selectedYearCallback(selectedYear);
     }
     handleMouseLeave() {
-        this.chartContent && this.chartContent.hideMarker();
-        this.toolTip.hide();
+        this._chartContent && this._chartContent.hideMarker();
+        this._toolTip.hide();
     }
     getDimensionValues(dimension) {
-        return lodash.exports.chain(this.data)
+        return lodash.exports.chain(this._data)
             .map((d) => d[dimension])
             .uniq()
             .value();
@@ -21917,13 +21922,13 @@ class OWIDTrendChart extends OWIDBaseChart {
     calculateMarginLeft() {
         const axisScale = this.axisY.scale();
         const values = axisScale.ticks();
-        const tickContent = values.map((d) => `${d} ${this.unit}`);
+        const tickContent = values.map((d) => `${d} ${this._unit}`);
         const tickSizes = tickContent.map((d) => this.getTextWidth(d, 16.2, "sans-serif"));
         const maxSize = lodash.exports.max(tickSizes);
         return maxSize || 10;
     }
     calculateMarginRight() {
-        const entityNames = this.dimensions.entities;
+        const entityNames = this._dimensions.entities;
         const legendContent = entityNames.map((d) => `${d}`);
         const legendSized = legendContent.map((d) => this.getTextWidth(d, 16.2, "sans-serif"));
         const maxSize = lodash.exports.max(legendSized);
@@ -21941,7 +21946,7 @@ class OWIDTrendChart extends OWIDBaseChart {
     showGridX() {
         const axisScale = this.axisX.scale();
         const gridValues = axisScale.ticks();
-        this.chartSVG
+        this._chartSVG
             .select("g.container")
             .append("g")
             .attr("class", "grid x")
@@ -21952,7 +21957,7 @@ class OWIDTrendChart extends OWIDBaseChart {
             .attr("x1", (d) => this.scaleX(d))
             .attr("x2", (d) => this.scaleX(d))
             .attr("y1", 0)
-            .attr("y2", this.height)
+            .attr("y2", this._height)
             .attr("stroke-dasharray", "3,2")
             .attr("stroke-width", 1)
             .attr("stroke", "lightgrey");
@@ -21960,7 +21965,7 @@ class OWIDTrendChart extends OWIDBaseChart {
     showGridY() {
         const axisScale = this.axisY.scale();
         const gridValues = axisScale.ticks();
-        this.chartSVG
+        this._chartSVG
             .select("g.container")
             .append("g")
             .attr("class", "grid y")
@@ -21969,7 +21974,7 @@ class OWIDTrendChart extends OWIDBaseChart {
             .join("line")
             .attr("class", "grid y")
             .attr("x1", 0)
-            .attr("x2", this.width)
+            .attr("x2", this._width)
             .attr("y1", (d) => this.scaleY(d))
             .attr("y2", (d) => this.scaleY(d))
             .attr("stroke-dasharray", "3,2")
@@ -21977,11 +21982,11 @@ class OWIDTrendChart extends OWIDBaseChart {
             .attr("stroke", "lightgrey");
     }
     getClosestYear(posX) {
-        const closestYear = this.dimensions.years.find((d) => d == Math.round(this.scaleX.invert(posX)));
+        const closestYear = this._dimensions.years.find((d) => d == Math.round(this.scaleX.invert(posX)));
         return closestYear;
     }
     render() {
-        return this.chartContainer.node();
+        return this._chartContainer.node();
     }
     css() {
         const inlineCss = `
@@ -21994,26 +21999,26 @@ class OWIDTrendChart extends OWIDBaseChart {
           max-width: 100%;
         }
 
-        .${this.className} {
+        .${this._className} {
             display: block;
             background: white;
             height: auto;
             height: intrinsic;
             max-width: 100%;
         }
-        .${this.className} text,
-        .${this.className} tspan {
+        .${this._className} text,
+        .${this._className} tspan {
             white-space: pre;
         }
-        .${this.className} .axis text {
+        .${this._className} .axis text {
             white-space: pre;    font-size: 16.2px;
             fill: rgb(102, 102, 102);        
         }
 
-        .${this.className} .axis path {
+        .${this._className} .axis path {
             display: none
         }
-        .${this.className} .axis.y line {
+        .${this._className} .axis.y line {
             display: none
         }
 
@@ -22118,56 +22123,6 @@ class OWIDTrendChart extends OWIDBaseChart {
 
         `;
         return inlineCss;
-    }
-}
-
-const config = {
-    // Margins for main chart content within <svg> element
-    marginBottom: 50,
-    // Separation between vertical bars
-    barsPadding: 0.2,
-    // Distance from bar to text with value
-    textValueDx: 10,
-    // Fontsize for values text in bars
-    valueFontSize: 16,
-};
-
-class OWIDBarChartBars {
-    unit;
-    entities;
-    data;
-    scales;
-    chartContainer;
-    constructor(data, options) {
-        this.data = data;
-        this.unit = options && options.unit;
-        this.entities = this.data = data;
-    }
-    render(scales, context) {
-        this.scales = scales;
-        this.chartContainer = create$1("svg:g");
-        this.chartContainer
-            .selectAll("rect.entity")
-            .data(this.data, (d) => d.entityName)
-            .join("rect")
-            .attr("class", "entity")
-            .attr("fill", "cyan")
-            .attr("y", (d) => this.scales.y(d.entityName))
-            .attr("height", this.scales.y.bandwidth())
-            .attr("width", (d) => this.scales.x(d.value));
-        this.chartContainer
-            .selectAll("text.value")
-            .data(this.data, (d) => d.entityName)
-            .join("text")
-            .attr("class", "value barLabel")
-            .attr("x", (d) => this.scales.x(d.value))
-            .attr("y", (d) => this.scales.y(d.entityName))
-            .attr("dy", this.scales.y.bandwidth() / 2 + config.valueFontSize / 2)
-            .attr("dx", config.textValueDx)
-            .attr("font-size", config.valueFontSize)
-            .attr("text-anchor", "start")
-            .text((d) => `${d.value} ${this.unit}`);
-        return this.chartContainer;
     }
 }
 
@@ -22262,6 +22217,17 @@ class OWIDBarChartTooltip {
     }
 }
 
+const config = {
+    // Margins for main chart content within <svg> element
+    marginBottom: 50,
+    // Separation between vertical bars
+    barsPadding: 0.2,
+    // Distance from bar to text with value
+    textValueDx: 10,
+    // Fontsize for values text in bars
+    valueFontSize: 16,
+};
+
 const inlineCSS = `
 
   .barLabel {
@@ -22274,110 +22240,140 @@ const inlineCSS = `
 `;
 
 class OWIDBarChart extends OWIDBaseChart {
-    scaleX;
-    scaleY;
-    axisX;
-    axisY;
-    year;
-    latestYear;
-    entities;
-    singleYearData;
-    maxValue;
+    _scaleX = linear();
+    _scaleY = band();
+    _axisX = axisBottom(this._scaleX);
+    _axisY = axisLeft(this._scaleY);
+    _year;
+    _latestYear;
+    _entities = [];
+    _singleYearData;
+    _maxValue;
     constructor(data, options) {
         super(data, options);
-        this.latestYear = lodash.exports.chain(data).map(d => d.year).max().value();
-        this.year = options && options.year || this.latestYear;
-        this.singleYearData = this.data.filter((d) => d.year == this.year);
-        this.marginBottom = config.marginBottom;
-        this.height = this.heightTotal - this.marginTop - this.marginBottom;
-        this.valuesRange = extent(this.data, (d) => d.value);
-        this.entities = lodash.exports.chain(this.singleYearData)
+        this._year = options && options.year;
+        this._toolTip = new OWIDBarChartTooltip({ colorScale: this._colorScale, containerWidth: this._width });
+        this._chartContainer.node().appendChild(this._toolTip.render().node());
+        this.startupSettings();
+        this.render();
+    }
+    startupSettings() {
+        this._latestYear = lodash.exports.chain(this._data).map((d) => d.year).max().value();
+        this._year = this._year || this._latestYear;
+        this._singleYearData = this._data.filter((d) => d.year == this._year);
+        this._marginBottom = config.marginBottom;
+        this._height = this._heightTotal - this._marginTop - this._marginBottom;
+        this._valuesRange = extent(this._data, (d) => d.value);
+        this._entities = lodash.exports.chain(this._singleYearData)
             .sortBy(d => d.value)
             .map(d => d.entityName)
             .uniq()
             .value();
-        this.maxValue = lodash.exports.chain(this.singleYearData)
+        this._maxValue = lodash.exports.chain(this._singleYearData)
             .map(d => d.value)
             .max()
             .value();
-        this.scaleX = linear()
-            .range([0, this.width])
-            .domain([0, this.maxValue]);
-        this.scaleY = band()
+        this._scaleX = linear()
+            .range([0, this._width])
+            .domain([0, this._maxValue]);
+        this._scaleY = band()
             .padding(config.barsPadding)
-            .range([this.height, 0])
-            .domain(this.entities);
-        this.axisX = axisBottom(this.scaleX)
+            .range([this._height, 0])
+            .domain(this._entities);
+        this._axisX = axisBottom(this._scaleX)
             .ticks(10)
-            .tickFormat((d) => `${d} ${this.unit}`);
-        this.axisY = axisLeft(this.scaleY);
+            .tickFormat((d) => `${d} ${this._unit}`);
+        this._axisY = axisLeft(this._scaleY);
         // Update left/right margin depending on the length on entitynames & values
-        this.marginLeft =
-            (options && options.marginLeft) || this.calculateMarginLeft() * 1.5;
-        this.marginRight =
-            (options && options.marginRight) || this.calculateMarginRight() * 1.5;
+        this._marginLeft = this.calculateMarginLeft() > this._marginLeft
+            ? this.calculateMarginLeft()
+            : this._marginLeft;
+        this._marginRight = this.calculateMarginRight() > this._marginRight
+            ? this.calculateMarginRight()
+            : this._marginRight;
         // Adjust width according to new margins
-        this.width = this.widthTotal - this.marginLeft - this.marginRight;
+        this._width = this._widthTotal - this._marginLeft - this._marginRight;
         // Update dimensions of <svg> inner elements according to updated margins & witdh
-        this.updateDimensions();
+        super.updateSizeAndMargins();
         // Update scales ranges
-        this.scaleX.range([0, this.width]);
-        this.scaleY.range([this.height, 0]);
-        this.toolTip = new OWIDBarChartTooltip({ colorScale: this.colorScale, containerWidth: this.width });
-        this.chartContainer.node().appendChild(this.toolTip.render().node());
-        if (this.y && this.y.grid) {
+        this._scaleX.range([0, this._width]);
+        this._scaleY.range([this._height, 0]);
+        if (this._y && this._y.grid) {
             this.showGridY();
         }
-        if (this.x && this.x.grid) {
+        if (this._x && this._x.grid) {
             this.showGridX();
         }
-        this.setupBarsSVGElements();
     }
-    setupBarsSVGElements() {
-        const mainContainer = this.chartContainer.select("svg").select("g.container");
+    render() {
+        // Main container is the <g> element where we will displayi our chart
+        const mainContainer = this._chartContainer.select("svg").select("g.container");
+        // We handle events for mouse interaction on the main container
         mainContainer
             .select("rect.backgroundLayer")
             .on("mousemove", (e) => this.handleMouseMove(e))
             .on("mouseleave", () => this.handleMouseLeave());
-        const chartBars = new OWIDBarChartBars(this.singleYearData, {
-            unit: this.unit
-        });
-        const chartContainer = chartBars.render({
-            x: this.scaleX,
-            y: this.scaleY
-        });
-        chartContainer
-            .append("style")
+        // Add bars associated to each entity for teh given year
+        mainContainer
+            .selectAll("rect.entity")
+            .data(this._singleYearData, (d) => d.entityName)
+            .join("rect")
+            .attr("class", "entity")
+            .attr("fill", "cyan")
+            .attr("y", (d) => d.entityName && this._scaleY(d.entityName))
+            .attr("height", this._scaleY.bandwidth())
+            .attr("width", (d) => this._scaleX(d.value));
+        mainContainer
+            .selectAll("text.value")
+            .data(this._singleYearData, (d) => d.entityName)
+            .join("text")
+            .attr("class", "value barLabel")
+            .attr("x", (d) => this._scaleX(d.value))
+            .attr("y", (d) => d.entityName && this._scaleY(d.entityName))
+            .attr("dy", this._scaleY.bandwidth() / 2 + config.valueFontSize / 2)
+            .attr("dx", config.textValueDx)
+            .attr("font-size", config.valueFontSize)
+            .attr("text-anchor", "start")
+            .text((d) => `${d.value} ${this._unit}`);
+        this._chartContainer.selectAll("style")
+            .data([null])
+            .join("style")
             .text(inlineCSS);
-        mainContainer.select("g.axis.x").call(this.axisX);
-        mainContainer.select("g.axis.y").call(this.axisY);
-        const mainContainerNode = mainContainer.node();
-        mainContainerNode && mainContainerNode.appendChild(chartContainer.node());
+        mainContainer.select("g.axis.x").call(this._axisX);
+        mainContainer.select("g.axis.y").call(this._axisY);
+        return this.node();
+    }
+    year(year) {
+        this._year = year;
+        this.startupSettings();
+        this.render();
+        return this;
     }
     handleMouseMove(e) {
     }
     handleMouseLeave() {
     }
+    // Auxiliary functions
     getDimensionValues(dimension) {
-        return lodash.exports.chain(this.data)
+        return lodash.exports.chain(this._data)
             .map((d) => d[dimension])
             .uniq()
             .value();
     }
     calculateMarginLeft() {
-        const axisScale = this.axisY.scale();
+        const axisScale = this._axisY.scale();
         const values = axisScale.domain();
         const tickContent = values.map((d) => `${d}`);
         const tickSizes = tickContent.map((d) => this.getTextWidth(d, 16.2, "sans-serif"));
         const maxSize = lodash.exports.max(tickSizes);
-        return maxSize || 10;
+        return maxSize * 1.5 || 10;
     }
     calculateMarginRight() {
-        const entityNames = this.dimensions.entities;
+        const entityNames = this._dimensions.entities;
         const legendContent = entityNames.map((d) => `${d}`);
         const legendSized = legendContent.map((d) => this.getTextWidth(d, 16.2, "sans-serif"));
         const maxSize = lodash.exports.max(legendSized);
-        return maxSize || 10;
+        return maxSize * 1.5 || 10;
     }
     getTextWidth(text, fontSize, fontFace) {
         const canvas = document.createElement("canvas"), context = canvas.getContext("2d");
@@ -22389,20 +22385,21 @@ class OWIDBarChart extends OWIDBaseChart {
         return textWidth;
     }
     showGridX() {
-        const axisScale = this.axisX.scale();
+        const axisScale = this._axisX.scale();
         const gridValues = axisScale.ticks();
-        this.chartSVG
-            .select("g.container")
-            .append("g")
-            .attr("class", "grid x")
+        const gridContainer = this._chartSVG.select("g.container").selectAll("g.grid.x")
+            .data([null])
+            .join("g")
+            .attr("class", "grid x");
+        gridContainer
             .selectAll("line")
             .data(gridValues)
             .join("line")
             .attr("class", "grid x")
-            .attr("x1", (d) => this.scaleX(d))
-            .attr("x2", (d) => this.scaleX(d))
+            .attr("x1", (d) => this._scaleX(d))
+            .attr("x2", (d) => this._scaleX(d))
             .attr("y1", 0)
-            .attr("y2", this.height)
+            .attr("y2", this._height)
             .attr("stroke-dasharray", "3,2")
             .attr("stroke-width", 1)
             .attr("stroke", "lightgrey");
@@ -22410,147 +22407,11 @@ class OWIDBarChart extends OWIDBaseChart {
     showGridY() {
     }
     getClosestYear(posX) {
-        const closestYear = this.dimensions.years.find((d) => d == Math.floor(this.scaleX.invert(posX)));
+        const closestYear = this._dimensions.years.find((d) => d == Math.floor(this._scaleX.invert(posX)));
         return closestYear;
     }
-    render() {
-        return this.chartContainer.node();
-    }
-    css() {
-        const inlineCss = `
-
-        .chartContainer {
-          display: block;
-          background: white;
-          height: auto;
-          height: intrinsic;
-          max-width: 100%;
-        }
-
-        .${this.className} {
-            display: block;
-            background: white;
-            height: auto;
-            height: intrinsic;
-            max-width: 100%;
-        }
-        .${this.className} text,
-        .${this.className} tspan {
-            white-space: pre;
-        }
-        .${this.className} .axis text {
-            white-space: pre;    font-size: 16.2px;
-            fill: rgb(102, 102, 102);        
-        }
-
-        .${this.className} .axis path {
-            display: none
-        }
-        .${this.className} .axis.y line {
-            display: none
-        }
-
-        .GrapherComponent {
-            display: inline-block;
-            border-bottom: none;
-            border-radius: 2px;
-            text-align: left;
-
-            line-height: 1em;
-
-            background: white;
-            color: #333;
-
-            position: relative;
-
-            /* Hidden overflow x so that tooltips don't cause scrollbars 
-            overflow: hidden;
-
-            border-radius: 2px;
-            box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 2px 0px,
-                rgba(0, 0, 0, 0.25) 0px 2px 2px 0px;
-            z-index: $zindex-chart;
-
-            * {
-                box-sizing: border-box;
-            }
-
-            button {
-                background: none;
-                border: none;
-            }
-
-            .btn {
-                font-size: 0.8em;
-                white-space: normal;
-            }
-
-            .flash {
-                margin: 10px;
-            }
-
-            .clickable {
-                cursor: pointer;
-
-                a {
-                    text-decoration: none;
-                    &:visited {
-                        color: initial;
-                    }
-                }
-            }
-            input[type="checkbox"] {
-                cursor: pointer;
-            }
-
-            /* Make World line slightly thicker 
-            svg .key-World_0 polyline {
-                stroke-width: 2 !important;
-            }
-
-            .projection .nv-line {
-                stroke-dasharray: 3, 3;
-            }
-
-            .projection .nv-point {
-                fill: #fff;
-                stroke-width: 1;
-                opacity: 0.5;
-            }
-
-            .projection .nv-point.hover {
-                stroke-width: 4;
-            }
-
-            a {
-                cursor: pointer;
-                color: #0645ad;
-                fill: #0645ad;
-                border-bottom: none;
-            }
-
-            h2 {
-                font-size: 2em;
-                margin-top: 0;
-                margin-bottom: 0.8em;
-                font-weight: 500;
-                line-height: 1.1;
-            }
-
-            .unstroked {
-                display: none;
-            }
-
-            .DownloadTab,
-            .tableTab,
-            .sourcesTab {
-                z-index: $zindex-tab;
-            }
-        }
-
-
-        `;
-        return inlineCss;
+    node() {
+        return this._chartContainer.node();
     }
 }
 

@@ -11,6 +11,7 @@ export declare class OWIDTrendChart extends OWIDBaseChart {
     }[];
     selectedYearCallback: any;
     constructor(data: any, options: any);
+    private startupSettings;
     setupTrendSVGElements(): void;
     handleMouseMove(e: any): void;
     handleMouseLeave(): void;

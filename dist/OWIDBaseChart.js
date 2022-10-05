@@ -3,89 +3,91 @@ import * as _ from 'lodash';
 import { baseCSS } from './OWIDBaseChartCSS';
 import { config } from './OWIDBaseChartConfig';
 export class OWIDBaseChart {
-    data = [];
-    height;
-    width;
-    marginTop = config.marginTop;
-    marginBottom = config.marginBottom;
-    marginLeft = config.marginLeft;
-    marginRight = config.marginRight;
-    heightTotal = config.heightTotal;
-    widthTotal = config.widthTotal;
-    unit;
-    className;
-    valuesRange;
-    dimensions;
-    scaleColor;
-    chartContainer;
-    chartSVG;
-    toolTip;
-    colorScale;
-    chartContent;
-    x;
-    y;
+    _data = [];
+    _height;
+    _width;
+    _marginTop = config.marginTop;
+    _marginBottom = config.marginBottom;
+    _marginLeft = config.marginLeft;
+    _marginRight = config.marginRight;
+    _heightTotal = config.heightTotal;
+    _widthTotal = config.widthTotal;
+    _unit;
+    _className;
+    _valuesRange;
+    _dimensions;
+    _scaleColor;
+    _chartContainer;
+    _chartSVG;
+    _toolTip;
+    _colorScale;
+    _chartContent;
+    _x;
+    _y;
     constructor(data, options) {
-        this.data = data;
-        this.widthTotal = (options && options.width) || this.widthTotal;
-        this.heightTotal = (options && options.height) || this.heightTotal;
-        this.marginTop = (options && options.marginTop) || this.marginTop;
-        this.marginBottom = (options && options.marginBottom) || this.marginBottom;
-        this.marginLeft = (options && options.marginLeft) || this.marginLeft;
-        this.marginTop = (options && options.marginTop) || this.marginTop;
-        this.height = this.heightTotal - this.marginBottom - this.marginTop;
-        this.width = this.widthTotal - this.marginLeft - this.marginRight;
-        this.y = (options && options.y) || {};
-        this.x = (options && options.x) || {};
-        this.unit = (options && options.unit) || "";
-        this.className = "owidChart";
-        this.unit = (options && options.unit) || "";
-        this.valuesRange = d3.extent(this.data, (d) => d.value);
-        this.dimensions = {
+        this._data = data;
+        this._widthTotal = (options && options.width) || this._widthTotal;
+        this._heightTotal = (options && options.height) || this._heightTotal;
+        this._marginTop = (options && options.marginTop) || this._marginTop;
+        this._marginBottom = (options && options.marginBottom) || this._marginBottom;
+        this._marginLeft = (options && options.marginLeft) || this._marginLeft;
+        this._marginTop = (options && options.marginTop) || this._marginTop;
+        this._height = this._heightTotal - this._marginBottom - this._marginTop;
+        this._width = this._widthTotal - this._marginLeft - this._marginRight;
+        this._y = (options && options.y) || {};
+        this._x = (options && options.x) || {};
+        this._unit = (options && options.unit) || "";
+        this._className = "owidChart";
+        this._unit = (options && options.unit) || "";
+        this._valuesRange = d3.extent(this._data, (d) => d.value);
+        this._dimensions = {
             years: (options && options.years) || this.getDimensionValues("year"),
             entities: (options && options.enitites) || this.getDimensionValues("entityName")
         };
-        this.scaleColor = d3.scaleOrdinal(config.colorScheme);
-        this.chartContainer = d3
+        this._scaleColor = d3.scaleOrdinal(config.colorScheme);
+        this._chartContainer = d3
             .create("div")
             .attr("class", "chartContainer")
             .attr("style", "position: relative; clear: both;");
-        this.chartSVG = this.chartContainer
+        this._chartSVG = this._chartContainer
             .append("svg");
-        this.chartContainer
+        this._chartContainer
             .append("div")
             .attr("class", "tooltipContainer");
-        this.setupSVGElements(this.chartSVG);
+        this.setupSVGElements(this._chartSVG);
     }
     setupSVGElements(svg) {
         svg
-            .attr("class", this.className)
+            .attr("class", this._className)
             .attr("fill", "currentColor")
             .attr("font-family", "system-ui, sans-serif")
             .attr("font-size", 10)
             .attr("text-anchor", "middle")
-            .attr("width", this.widthTotal)
-            .attr("height", this.heightTotal)
-            .attr("viewBox", `0 0 ${this.widthTotal} ${this.heightTotal}`)
+            .attr("width", this._widthTotal)
+            .attr("height", this._heightTotal)
+            .attr("viewBox", `0 0 ${this._widthTotal} ${this._heightTotal}`)
             .call((svg) => svg.append("style").text(this.css()))
             .call((svg) => svg
             .append("rect")
-            .attr("width", this.widthTotal)
-            .attr("height", this.heightTotal)
+            .attr("width", this._widthTotal)
+            .attr("height", this._heightTotal)
             .attr("fill", "white"));
-        const mainContainer = svg
-            .append("g")
+        // If it does not already exists, we add a <g> element that will be the main container
+        const mainContainer = svg.selectAll("g.container")
+            .data([null]) // we will use D· data joins to create a single instance of the element
+            .join("g")
             .attr("class", "container")
-            .attr("transform", `translate(${this.marginLeft}, ${this.marginTop})`)
+            .attr("transform", `translate(${this._marginLeft}, ${this._marginTop})`)
             .call((g) => g
             .append("rect")
             .attr("class", "backgroundLayer")
-            .attr("width", this.width)
-            .attr("height", this.height)
+            .attr("width", this._width)
+            .attr("height", this._height)
             .attr("fill", "white"))
             .call((g) => g
             .append("g")
             .attr("class", "axis x")
-            .attr("transform", `translate(${0}, ${this.height})`))
+            .attr("transform", `translate(${0}, ${this._height})`))
             .call((g) => g
             .append("g")
             .attr("class", "axis y")
@@ -97,32 +99,32 @@ export class OWIDBaseChart {
         return svg;
     }
     /**
-     * updateDimensions
+     * updateSizeAndMargins
      * Updated charts internat height / width dimensons based on current margins
      */
-    updateDimensions() {
+    updateSizeAndMargins() {
         // Applies new left margin to our chart main <g> container
-        this.chartContainer.select("svg")
+        this._chartContainer.select("svg")
             .select("g.container")
-            .attr("transform", `translate(${this.marginLeft}, ${this.marginTop})`);
-        this.chartContainer.select("svg")
+            .attr("transform", `translate(${this._marginLeft}, ${this._marginTop})`);
+        this._chartContainer.select("svg")
             .select("g.container")
             .select("rect.backgroundLayer")
-            .attr("width", this.width)
-            .attr("height", this.height);
-        this.chartContainer.select("svg")
+            .attr("width", this._width)
+            .attr("height", this._height);
+        this._chartContainer.select("svg")
             .select("g.axis.x")
-            .attr("transform", `translate(${0}, ${this.height})`);
+            .attr("transform", `translate(${0}, ${this._height})`);
     }
     handleMouseMove(e) {
         const pos_relTarget = d3.pointer(e);
-        const pos_relContainer = d3.pointer(e, this.chartContainer);
+        const pos_relContainer = d3.pointer(e, this._chartContainer);
     }
     handleMouseLeave() {
-        this.chartContent && this.chartContent.hideMarker();
+        this._chartContent && this._chartContent.hideMarker();
     }
     getDimensionValues(dimension) {
-        return _.chain(this.data)
+        return _.chain(this._data)
             .map((d) => d[dimension])
             .uniq()
             .value();
@@ -137,7 +139,7 @@ export class OWIDBaseChart {
         return textWidth;
     }
     render() {
-        return this.chartContainer.node();
+        return this._chartContainer.node();
     }
     css() {
         return baseCSS;
