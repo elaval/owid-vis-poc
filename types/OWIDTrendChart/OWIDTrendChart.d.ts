@@ -1,18 +1,22 @@
 import * as d3 from 'd3';
 import { OWIDBaseChart } from '../OWIDBaseChart';
 export declare class OWIDTrendChart extends OWIDBaseChart {
-    scaleX: d3.ScaleLinear<number, number, never>;
-    scaleY: d3.ScaleLinear<number, number, never>;
-    axisX: d3.Axis<d3.NumberValue>;
-    axisY: d3.Axis<d3.NumberValue>;
-    seriesData: {
+    protected _scaleX: d3.ScaleLinear<number, number, never>;
+    protected _scaleY: d3.ScaleLinear<number, number, never>;
+    protected _axisX: d3.Axis<d3.NumberValue>;
+    protected _axisY: d3.Axis<d3.NumberValue>;
+    protected _seriesData: {
         name: string;
         data: any;
     }[];
-    selectedYearCallback: any;
+    protected _selectedYearCallback: any;
+    private _years;
+    private _values;
+    private _maxYear;
+    private _visibleValues;
     constructor(data: any, options: any);
     private startupSettings;
-    setupTrendSVGElements(): void;
+    render(): void;
     handleMouseMove(e: any): void;
     handleMouseLeave(): void;
     getDimensionValues(dimension: string): any;
@@ -22,6 +26,6 @@ export declare class OWIDTrendChart extends OWIDBaseChart {
     showGridX(): void;
     showGridY(): void;
     getClosestYear(posX: number): number;
-    render(): any;
+    node(): any;
     css(): string;
 }

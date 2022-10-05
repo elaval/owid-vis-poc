@@ -1,11 +1,11 @@
-// @elaval/owid-vis-poc v0.1.2 Copyright 
+// @elaval/owid-vis-poc v0.2.0 Copyright 
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
 (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.owidVis = global.owidVis || {}));
 })(this, (function (exports) { 'use strict';
 
-var version = "0.1.2";
+var version = "0.2.0";
 
 function ascending$1(a, b) {
   return a == null || b == null ? NaN : a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -21589,141 +21589,6 @@ class OWIDBaseChart {
     }
 }
 
-class OWIDTrendChartLines {
-    unit;
-    entities;
-    data;
-    dotSizeStandard;
-    dotSizeHighlighted;
-    scaleColor;
-    years;
-    values;
-    maxYear;
-    visibleValues;
-    seriesData;
-    scales;
-    chartContainer;
-    constructor(data, options) {
-        this.unit = options && options.unit;
-        this.entities = this.data = data;
-        this.dotSizeStandard = 2;
-        this.dotSizeHighlighted = 4;
-        this.scaleColor =
-            (options && options.scaleColor) || ordinal(schemeCategory10);
-        this.years = lodash.exports.chain(data)
-            .map((d) => d.year)
-            .uniq()
-            .value();
-        this.values = lodash.exports.chain(data)
-            .map((d) => d.value)
-            .uniq()
-            .value();
-        this.maxYear = lodash.exports.max(this.years);
-        this.visibleValues = lodash.exports.range(Math.floor(lodash.exports.min(this.values)), Math.ceil(lodash.exports.max(this.values))).filter((d) => d % 5 == 0);
-        this.seriesData = lodash.exports.chain(data)
-            .groupBy((d) => d.entityName)
-            .map((items, entityName) => ({ name: entityName, data: items }))
-            .value();
-    }
-    getScaleColor() {
-        return this.scaleColor;
-    }
-    renderMarker(pos) {
-        const selectedYear = this.years.find((d) => d == Math.floor(this.scales.x.invert(pos[0])));
-        this.chartContainer
-            .selectAll("g.serie")
-            .selectAll("circle.dot")
-            .attr("r", (d) => (d.year == selectedYear ? 4 : 2));
-        this.chartContainer
-            .selectAll("line.marker")
-            .data([selectedYear])
-            .join("line")
-            .attr("class", "marker")
-            .attr("y1", this.scales.y.range()[1])
-            .attr("y2", this.scales.y.range()[0])
-            .attr("x1", this.scales.x(selectedYear))
-            .attr("x2", this.scales.x(selectedYear))
-            .attr("stroke", "grey")
-            .attr("stroke-width", 1);
-    }
-    showMarker(year) {
-        this.chartContainer
-            .selectAll("g.serie")
-            .selectAll("circle.dot")
-            .attr("r", (d) => d.year == year ? this.dotSizeHighlighted : this.dotSizeStandard);
-        this.chartContainer
-            .selectAll("line.marker")
-            .data([year])
-            .join("line")
-            .attr("class", "marker")
-            .attr("y1", this.scales.y.range()[1])
-            .attr("y2", this.scales.y.range()[0])
-            .attr("x1", this.scales.x(year))
-            .attr("x2", this.scales.x(year))
-            .attr("stroke", "grey")
-            .attr("stroke-width", 1);
-    }
-    hideMarker() {
-        this.chartContainer
-            .selectAll("g.serie")
-            .selectAll("circle.dot")
-            .attr("r", this.dotSizeStandard);
-        this.chartContainer.selectAll("line.marker").remove();
-    }
-    selectedYear(pos) {
-        const selectedYear = this.years.find((d) => d == Math.floor(this.scales.x.invert(pos[0])));
-        return selectedYear;
-    }
-    render(scales, context) {
-        this.scales = scales;
-        scales.x.domain(extent(this.years));
-        scales.y.domain(extent(this.values));
-        this.chartContainer = create$1("svg:g");
-        const line$1 = line()
-            .x((d) => scales.x(d.year))
-            .y((d) => scales.y(d.value));
-        const series = this.chartContainer
-            .selectAll("g.serie")
-            .data(this.seriesData, (d) => d.name)
-            .join("g")
-            .attr("class", (d) => `serie ${d.name}`);
-        series
-            .selectAll("path")
-            .data((d) => [d.data])
-            .join("path")
-            .attr("d", (d) => line$1(d))
-            .attr("fill", "none")
-            .attr("stroke-width", 2)
-            .attr("stroke", (d) => this.scaleColor(d[0].entityName));
-        series
-            .selectAll("circle.dot")
-            .data((d) => d.data)
-            .join("circle")
-            .attr("class", "dot")
-            .attr("fill", (d) => this.scaleColor(d.entityName))
-            .attr("cx", (d) => scales.x(d.year))
-            .attr("cy", (d) => scales.y(d.value))
-            .attr("r", 2);
-        const legendMark = series
-            .selectAll("g.legendMark")
-            .data((d) => [lodash.exports.last(d.data)])
-            .join("g")
-            .attr("class", "legendMark")
-            .attr("transform", (d) => `translate(${scales.x(this.maxYear)},${scales.y(d.value)})`);
-        legendMark
-            .selectAll("text")
-            .data((d) => [d])
-            .join("text")
-            .attr("dx", 10)
-            .attr("text-anchor", "start")
-            .attr("font-size", 12)
-            .attr("font-weight", 400)
-            .attr("fill", (d) => this.scaleColor(d.entityName))
-            .text((d) => d.entityName);
-        return this.chartContainer.node();
-    }
-}
-
 class OWIDTrendChartTooltip {
     colorScale;
     tooltipContainer;
@@ -21821,79 +21686,150 @@ const config$1 = {
 };
 
 class OWIDTrendChart extends OWIDBaseChart {
-    scaleX = linear();
-    scaleY = linear();
-    axisX = axisBottom(this.scaleX);
-    axisY = axisLeft(this.scaleY);
-    seriesData = [];
-    selectedYearCallback;
+    _scaleX = linear();
+    _scaleY = linear();
+    _axisX = axisBottom(this._scaleX);
+    _axisY = axisLeft(this._scaleY);
+    _seriesData = [];
+    _selectedYearCallback;
+    _years = [];
+    _values = [];
+    _maxYear;
+    _visibleValues = [];
     constructor(data, options) {
         super(data, options);
         this._dimensions = {
             years: (options && options.years) || this.getDimensionValues("year"),
             entities: (options && options.enitites) || this.getDimensionValues("entityName")
         };
+        this._marginLeft = options && options.marginLeft;
+        this._marginRight = options && options._marginRight;
         this._marginLeft =
-            (options && options.marginLeft) || this.calculateMarginLeft() * 1.5;
+            (options && options.marginLeft) || this.calculateMarginLeft();
         this._marginRight =
-            (options && options.marginRight) || this.calculateMarginRight() * 1.5;
-        this.selectedYearCallback = options && options.selectedYearCallback || function () { };
+            (options && options.marginRight) || this.calculateMarginRight();
+        this._selectedYearCallback = options && options.selectedYearCallback || function () { };
+        this._toolTip = new OWIDTrendChartTooltip({ colorScale: this._colorScale, containerWidth: this._width });
+        this._chartContainer.node().appendChild(this._toolTip.render().node());
         this.startupSettings();
+        this.render();
     }
     startupSettings() {
         this._marginBottom = config$1.marginBottom;
         this._height = this._heightTotal - this._marginTop - this._marginBottom;
         this._valuesRange = extent(this._data, (d) => d.value);
-        this.scaleX = linear().range([0, this._width]);
-        this.scaleY = linear()
+        this._scaleX = linear().range([0, this._width]);
+        this._scaleY = linear()
             .range([this._height, 0])
             .domain(this._valuesRange);
-        this.axisX = axisBottom(this.scaleX).ticks(10, "d");
-        this.axisY = axisLeft(this.scaleY)
+        this._axisX = axisBottom(this._scaleX).ticks(10, "d");
+        this._axisY = axisLeft(this._scaleY)
             .ticks(10)
             .tickFormat((d) => `${d} ${this._unit}`);
+        // Update left/right margin depending on the length on entitynames & values
+        this._marginLeft = this.calculateMarginLeft() > this._marginLeft
+            ? this.calculateMarginLeft()
+            : this._marginLeft;
+        this._marginRight = this.calculateMarginRight() > this._marginRight
+            ? this.calculateMarginRight()
+            : this._marginRight;
+        // Adjust width according to new margins
+        this._width = this._widthTotal - this._marginLeft - this._marginRight;
         this._width = this._widthTotal - this._marginLeft - this._marginRight;
         super.updateSizeAndMargins();
-        this.scaleX.range([0, this._width]);
-        this.scaleY.range([this._height, 0]);
-        this.seriesData = lodash.exports.chain(this._data)
+        this._scaleX.range([0, this._width]);
+        this._scaleY.range([this._height, 0]);
+        this._seriesData = lodash.exports.chain(this._data)
             .groupBy((d) => d.entityName)
             .map((items, entityName) => ({ name: entityName, data: items }))
             .value();
-        this._toolTip = new OWIDTrendChartTooltip({ colorScale: this._colorScale, containerWidth: this._width });
-        this._chartContainer.node().appendChild(this._toolTip.render().node());
         if (this._y && this._y.grid) {
             this.showGridY();
         }
         if (this._x && this._x.grid) {
             this.showGridX();
         }
-        this.setupTrendSVGElements();
+        this._years = lodash.exports.chain(this._data)
+            .map((d) => d.year)
+            .uniq()
+            .value();
+        this._values = lodash.exports.chain(this._data)
+            .map((d) => d.value)
+            .uniq()
+            .value();
+        this._maxYear = lodash.exports.max(this._years);
+        this._visibleValues = lodash.exports.range(Math.floor(lodash.exports.min(this._values)), Math.ceil(lodash.exports.max(this._values))).filter((d) => d % 5 == 0);
+        this._seriesData = lodash.exports.chain(this._data)
+            .groupBy((d) => d.entityName)
+            .map((items, entityName) => ({ name: entityName, data: items }))
+            .value();
     }
-    setupTrendSVGElements() {
+    render() {
+        // Main <g> container where we display the visual elements
         const mainContainer = this._chartContainer.select("svg").select("g.container");
+        // Capture mouse events on background rect
         mainContainer
             .select("rect.backgroundLayer")
             .on("mousemove", (e) => this.handleMouseMove(e))
             .on("mouseleave", () => this.handleMouseLeave());
-        this._chartContent = new OWIDTrendChartLines(this._data, {
-            scaleColor: this._scaleColor
-        });
-        const chartContentEL = this._chartContent.render({
-            x: this.scaleX,
-            y: this.scaleY
-        });
-        mainContainer.select("g.axis.x").call(this.axisX);
-        mainContainer.select("g.axis.y").call(this.axisY);
-        const mainContainerNode = mainContainer.node();
-        mainContainerNode && mainContainerNode.appendChild(chartContentEL);
+        const rangeYears = extent(this._years);
+        const rangeValues = extent(this._values);
+        this._scaleX.domain(rangeYears);
+        this._scaleY.domain(rangeValues);
+        mainContainer.select("g.axis.x").call(this._axisX);
+        mainContainer.select("g.axis.y").call(this._axisY);
+        const chartContainer = mainContainer.selectAll("g.lineChartContainer")
+            .data([null])
+            .join("g")
+            .attr("class", "lineChartContainer");
+        const line$1 = line()
+            .x((d) => this._scaleX(d.year))
+            .y((d) => this._scaleY(d.value));
+        const series = chartContainer
+            .selectAll("g.serie")
+            .data(this._seriesData, (d) => d.name)
+            .join("g")
+            .attr("class", (d) => `serie ${d.name}`);
+        series
+            .selectAll("path")
+            .data((d) => [d.data])
+            .join("path")
+            .attr("d", (d) => line$1(d))
+            .attr("fill", "none")
+            .attr("stroke-width", 2)
+            .attr("stroke", (d) => this._scaleColor(d[0].entityName));
+        series
+            .selectAll("circle.dot")
+            .data((d) => d.data)
+            .join("circle")
+            .attr("class", "dot")
+            .attr("fill", (d) => this._scaleColor(d.entityName))
+            .attr("cx", (d) => this._scaleX(d.year))
+            .attr("cy", (d) => this._scaleY(d.value))
+            .attr("r", 2);
+        const legendMark = series
+            .selectAll("g.legendMark")
+            .data((d) => [lodash.exports.last(d.data)])
+            .join("g")
+            .attr("class", "legendMark")
+            .attr("transform", (d) => `translate(${this._scaleX(this._maxYear)},${this._scaleY(d.value)})`);
+        legendMark
+            .selectAll("text")
+            .data((d) => [d])
+            .join("text")
+            .attr("dx", 10)
+            .attr("text-anchor", "start")
+            .attr("font-size", 12)
+            .attr("font-weight", 400)
+            .attr("fill", (d) => this._scaleColor(d.entityName))
+            .text((d) => d.entityName);
     }
     handleMouseMove(e) {
         const pos_relTarget = pointer(e);
         const pos_relContainer = pointer(e, this._chartContainer);
         const selectedYear = this.getClosestYear(pos_relTarget[0]);
         this._chartContent && this._chartContent.showMarker(selectedYear);
-        const tooltipData = lodash.exports.chain(this.seriesData)
+        const tooltipData = lodash.exports.chain(this._seriesData)
             .map((d) => {
             const yearRecord = d.data.find((d) => d.year == selectedYear);
             return {
@@ -21907,7 +21843,7 @@ class OWIDTrendChart extends OWIDBaseChart {
             year: selectedYear,
             data: tooltipData
         });
-        this.selectedYearCallback(selectedYear);
+        this._selectedYearCallback(selectedYear);
     }
     handleMouseLeave() {
         this._chartContent && this._chartContent.hideMarker();
@@ -21920,19 +21856,19 @@ class OWIDTrendChart extends OWIDBaseChart {
             .value();
     }
     calculateMarginLeft() {
-        const axisScale = this.axisY.scale();
+        const axisScale = this._axisY.scale();
         const values = axisScale.ticks();
         const tickContent = values.map((d) => `${d} ${this._unit}`);
         const tickSizes = tickContent.map((d) => this.getTextWidth(d, 16.2, "sans-serif"));
         const maxSize = lodash.exports.max(tickSizes);
-        return maxSize || 10;
+        return maxSize * 1.5 || 10;
     }
     calculateMarginRight() {
         const entityNames = this._dimensions.entities;
         const legendContent = entityNames.map((d) => `${d}`);
         const legendSized = legendContent.map((d) => this.getTextWidth(d, 16.2, "sans-serif"));
         const maxSize = lodash.exports.max(legendSized);
-        return maxSize || 10;
+        return maxSize * 1.5 || 10;
     }
     getTextWidth(text, fontSize, fontFace) {
         const canvas = document.createElement("canvas"), context = canvas.getContext("2d");
@@ -21944,7 +21880,7 @@ class OWIDTrendChart extends OWIDBaseChart {
         return textWidth;
     }
     showGridX() {
-        const axisScale = this.axisX.scale();
+        const axisScale = this._axisX.scale();
         const gridValues = axisScale.ticks();
         this._chartSVG
             .select("g.container")
@@ -21954,8 +21890,8 @@ class OWIDTrendChart extends OWIDBaseChart {
             .data(gridValues)
             .join("line")
             .attr("class", "grid x")
-            .attr("x1", (d) => this.scaleX(d))
-            .attr("x2", (d) => this.scaleX(d))
+            .attr("x1", (d) => this._scaleX(d))
+            .attr("x2", (d) => this._scaleX(d))
             .attr("y1", 0)
             .attr("y2", this._height)
             .attr("stroke-dasharray", "3,2")
@@ -21963,7 +21899,7 @@ class OWIDTrendChart extends OWIDBaseChart {
             .attr("stroke", "lightgrey");
     }
     showGridY() {
-        const axisScale = this.axisY.scale();
+        const axisScale = this._axisY.scale();
         const gridValues = axisScale.ticks();
         this._chartSVG
             .select("g.container")
@@ -21975,17 +21911,17 @@ class OWIDTrendChart extends OWIDBaseChart {
             .attr("class", "grid y")
             .attr("x1", 0)
             .attr("x2", this._width)
-            .attr("y1", (d) => this.scaleY(d))
-            .attr("y2", (d) => this.scaleY(d))
+            .attr("y1", (d) => this._scaleY(d))
+            .attr("y2", (d) => this._scaleY(d))
             .attr("stroke-dasharray", "3,2")
             .attr("stroke-width", 1)
             .attr("stroke", "lightgrey");
     }
     getClosestYear(posX) {
-        const closestYear = this._dimensions.years.find((d) => d == Math.round(this.scaleX.invert(posX)));
+        const closestYear = this._dimensions.years.find((d) => d == Math.round(this._scaleX.invert(posX)));
         return closestYear;
     }
-    render() {
+    node() {
         return this._chartContainer.node();
     }
     css() {
