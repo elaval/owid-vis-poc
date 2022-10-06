@@ -1,7 +1,7 @@
 # owidVis : A Javascript library for building visualizations with data from Our World in Data 
 ## A Proof of concept
 
-Our World in Data (OWID) is an initiative that aims at **research and data to make progress against the world’s largest problems**.  They collect and mantain hundreds of datasets from worlwide public data that is transformed into meaningful information via evidence based articles and data visualisations.
+Our World in Data (OWID) is an initiative that aims at **research and data to make progress against the world’s largest problems**.  They collect and mantain hundreds of public datasets which are the source of evidence based articles and data visualisations.
 
 They currently have a visualization tool - OWID Grapher (https://github.com/owid/owid-grapher) - that has been designed to easily create, and publish, visualizations in a consistent format for different datasets.
 
@@ -9,11 +9,11 @@ But Grapher authors mention that
 
 > "This repo is currently not well-designed for reuse as a visualization library, nor for reproducing the full production environment we have at Our World in Data, as our tools are tightly coupled with our database structure."
 
-My objective with **owid-vis-pc** (aka owidVis) is to explore an alternative approach for creating a suite of visualization components that would:
-* Allow for easy reutilization (a javascript library that can be applied to dev projects in a standard way)
-* Decouple the visualization tools from the database
-* Be designed specially for OWID data (mainly data that has year / entity dimensions and numeric values)
-* Be simple to understand and easily expanded by visualization developers
+My objective with **owid-vis-poc** (aka owidVis) is to explore a potential approach for creating a suite of visualization components that would:
+* Allow for easy reutilization (a light weight javascript library that can use in web developments and publications)
+* Decouple visualizations from the database
+* Be designed for OWID data (assumes geographical & time dimensions)
+* Be accesible for visualization developers to contribute and extend it
 
 ## Quick overview
 
@@ -21,9 +21,9 @@ My idea is that we would develop a javascript library that will be distributed v
 
 <pre>
 
-  // Let's assume thet we have already retreived the data for a specific varaible
+  // Let's assume thet we have already retreived the data for a specific varaible (e.g. Life Expectancy)
   const data = [
-    {entityName: "United Kingdom", year: 1990, value:73.2},
+    {entityName: "United Kingdom", year: 1990, value:75.7},
     ...
   ]
 
@@ -38,51 +38,67 @@ My idea is that we would develop a javascript library that will be distributed v
 
 You can see this in action in a html page with pure Javascript at [https://elaval.github.io/owid-vis-demo-basic/index.html](https://elaval.github.io/owid-vis-demo-basic/index.html)
 
-I suggest to visit this notebook that exemplifies how to retreive OWID data and render trend & barcharts in Observable.com:
+I suggest to also visit this notebook that exemplifies how to retreive OWID data and render trend & barcharts in Observable.com:
 https://observablehq.com/@elaval/owid-visualisation-components-poc
-
 
 ## Library architecture
 
 ### Data structure
- We will assume that the visualization library will consume datasets with a standard format (the library itself will not be responsible for retreiving / producing the data).  *Below we give an overview on OWID data model*.
+ We will assume that the visualization library will consume datasets with a standard format (the library itself will not be responsible for retreiving / producing the data).
 
 The assumption is that all data will have records with, at least, **entitiName**, **year** and **value**
 <img width="462" alt="image" src="https://user-images.githubusercontent.com/68602/193715399-22af89ec-572e-4cbd-a887-9872beaf4108.png">
 
-Also the data should have a "unit" description that can should be part of the respective dataset metadata.
+Also the data should have an associated "unit" description that is part of the respective dataset metadata.
 
 ### Library classes
 The visualization library will export an object - **owidVIS** - that will provide a collection of chart building functions. For example:
 
-* **OWIDTrendChart()**: Creates a line chart with values over years for available entities
+* **OWIDTrendChart()**: Creates a line chart with values over years for available entities (countries)
 * **OWIDBarChart()**: Creates a bar chart with values for different entities in a specific year
-* **OWIDMap()**: Creates a world map with values for entities (countries) in a specific year
+* **OWIDMap()**: Creates a world map with values for entities in a specific year
 ...
 
-Note: This POC illustrates the concept with TrendChart and BarChart classes
+Note: This POC illustrates the concept with TrendChart and BarChart
 
-In the source code, all visualization are Javascript (actually TypeScript) classes that are derived from a parent **OWIDChart** class which provides elements and functions that are common to all visualizations.
+In the source code, all visualization are Javascript (actually TypeScript) classes that are derived from a parent class - **OWIDChart** - which provides elements and functions that are common to all visualizations.
 
-Visualizations are represented as visual elements on the DOM which include a \<div> wrapper that contains a \<svg> element which contains a \<g> element that will be the main container for all visual elements that are especific to each chart (e.g. lines for TrendChart, rectangles for BarChart, ...)  
+Visualizations are represented as visual elements in the DOM which include a \<div> wrapper that contains a \<svg> element which contains a \<g> element.  This \<g> element will be the main container for all visual elements that constitute a specific chart (e.g. lines for TrendChart, rectangles for BarChart, axis, ...)  
 
 <img width="1443" alt="image" src="https://user-images.githubusercontent.com/68602/193721282-f277048e-c751-4173-abf6-8137528e4e9c.png">
 
-Most of the visual elements are created, configured and transformed using D3js (https://d3js.org/) which has became the de-facto library for data visualization.
+Most of the visual elements are created, configured and transformed using D3js (https://d3js.org/) which has became a de-facto library for data visualization.
 
-Each Visualization class provides a series of methods that allow the user to provide specific configurations.  
+Each cisualization class provides a series of methods that allow the user to provide specific configurations.  
 
 For example, to create a trendChart that has "years" as the unit and a total width of 1000 pixels, we would use:
 <pre>
 const myTrendChart = owidVis.OWIDTrendChart(data).unit("years").width(1000)
 </pre>
 
-The *node()* method will export the DOM element (\<div>) that can be embedded in a html document.
+The *node()* method will export a DOM element (\<div>) that contains the visualization and can be embedded in any html document.
  
 <pre>
 owidVis.OWIDTrendChart(data).node()
 </pre>
 
+## Building the code
+
+You can download the code from this respository and then
+
+Install dependencies: 
+<pre>
+$ npm i
+</pre>
+
+Build javascript code from Typescript sources (we use rollout to create umd bundles)
+$ npm run build
+
+Distribution library can be founs at dist/owid-vis-poc.umd.js or dist/owid-vis-poc.umd.min.js
+
+The library depends on "lodash" (which is included in the bundel) and d3js (which is not included in the bundle)
+
+Users are expected to import d3.js in their projects
 
 ## Characteristics of OWID data
 
