@@ -34,11 +34,11 @@ My idea is that we would develop a javascript library that will be distributed v
 
 </pre>
 
-<img width="933" alt="image" src="https://user-images.githubusercontent.com/68602/194140362-e61b3a0f-6c05-49bc-ae90-491a99d59dce.png">
+<img width="939" alt="image" src="https://user-images.githubusercontent.com/68602/194190358-7a0465fa-768c-4379-9629-202acda714c7.png">
+You can see this in action in a html page with pure Javascript at https://elaval.github.io/owid-vis-demo-basic/index.html.
+<br><br>
 
-You can see this in action in a html page with pure Javascript at [https://elaval.github.io/owid-vis-demo-basic/index.html](https://elaval.github.io/owid-vis-demo-basic/index.html)
-
-I suggest to also visit this notebook that exemplifies how to retreive OWID data and render trend & barcharts in Observable.com:
+I suggest to visit this notebook that exemplifies how to retreive OWID data and render trend & barcharts in Observable.com:
 https://observablehq.com/@elaval/owid-visualisation-components-poc
 
 ## Library architecture
@@ -46,10 +46,10 @@ https://observablehq.com/@elaval/owid-visualisation-components-poc
 ### Data structure
  We will assume that the visualization library will consume datasets with a standard format (the library itself will not be responsible for retreiving / producing the data).
 
-The assumption is that all data will have records with, at least, **entitiName**, **year** and **value**
+The assumption is that all data will have records with, at least, **entityName**, **year** and **value**
 <img width="462" alt="image" src="https://user-images.githubusercontent.com/68602/193715399-22af89ec-572e-4cbd-a887-9872beaf4108.png">
 
-Also the data should have an associated "unit" description that is part of the respective dataset metadata.
+The data should also have an associated "unit" description that is part of the respective dataset metadata.
 
 ### Library classes
 The visualization library will export an object - **owidVIS** - that will provide a collection of chart building functions. For example:
@@ -59,7 +59,7 @@ The visualization library will export an object - **owidVIS** - that will provid
 * **OWIDMap()**: Creates a world map with values for entities in a specific year
 ...
 
-Note: This POC illustrates the concept with TrendChart and BarChart
+Note: This POC illustrates the concept with TrendChart and BarChart prototypes
 
 In the source code, all visualization are Javascript (actually TypeScript) classes that are derived from a parent class - **OWIDChart** - which provides elements and functions that are common to all visualizations.
 
@@ -69,20 +69,20 @@ Visualizations are represented as visual elements in the DOM which include a \<d
 
 Most of the visual elements are created, configured and transformed using D3js (https://d3js.org/) which has became a de-facto library for data visualization.
 
-Each cisualization class provides a series of methods that allow the user to provide specific configurations.  
+Each visualization class provides a series of methods that allow the user to provide specific configurations.  
 
 For example, to create a trendChart that has "years" as the unit and a total width of 1000 pixels, we would use:
 <pre>
 const myTrendChart = owidVis.OWIDTrendChart(data).unit("years").width(1000)
 </pre>
 
-The *node()* method will export a DOM element (\<div>) that contains the visualization and can be embedded in any html document.
+The *node()* method will return the DOM element (\<div>) that contains the visualization and can be embedded in any html document.
  
 <pre>
 owidVis.OWIDTrendChart(data).node()
 </pre>
 
-## Building the code
+## Building the library
 
 You can download the code from this respository and then
 
@@ -91,12 +91,12 @@ Install dependencies:
 $ npm i
 </pre>
 
-Build javascript code from Typescript sources (we use rollout to create umd bundles)
+Build javascript code from Typescript sources (we use rolloutjs to create umd bundles)
 $ npm run build
 
-Distribution library can be founs at dist/owid-vis-poc.umd.js or dist/owid-vis-poc.umd.min.js
+Distribution library can be found at *dist/owid-vis-poc.umd.js* or *dist/owid-vis-poc.umd.min.js*
 
-The library depends on "lodash" (which is included in the bundel) and d3js (which is not included in the bundle)
+The library depends on "lodash" (which is included in the bundel) and d3js (which is **not** included in the bundle)
 
 Users are expected to import d3.js in their projects
 
@@ -109,12 +109,12 @@ Current OWID Grappher consumes data from a MySQL database that is publicly distr
 * Datasets: are associated to a specific source and can contain a collection of *variables* (metrics)
 * Tags: descriptors that are associated to **datasets** (e.g. "Population Growth").  Tags can have tag parents which allows to build a hierarchical structure of tags (e.g. "Population Growth" is a child of "Population Growth & Vital Statistics")
 * Variables: multiple variables can be associated to a **dataset**.  Each variable (e.g. "Fertility Rate") has a unit (e.g. "children per woman") and is associated to a table that contains a collection of **data-values** 
-* Data-Values: the actual data for a specific variables.  Collection of records with **values** associated to time (**year**) and **entities** (countries, continents, ...).
+* Data-Values: the actual data for a specific variable.  Collection of records with **values** associated to time (**year**) and **entities** (countries, continents, ...).
 * Entities have a name (e.g. "United Kingdom") and id (e.g. 1) and a code (e.g. GBR)
 
-Once the user has selected a domain and dataset (e.g. "World Development Indicators - Economic Policy & Debt") and a specific variable from that dataset  (e.g. "GDP per capita, PPP (constant 2011 international $)") then we are dealing with a single data table that will be used for visualizations.
+Once the user has selected a domain and dataset (e.g. "World Development Indicators - Economic Policy & Debt") and a specific variable from that dataset  (e.g. "GDP per capita, PPP (constant 2011 international $)") then we are dealing with a selection of data values that will be used for visualizations.
 
-The original Data Model has a normalized structure in there is a relationship between data-values and entities
+The original Data Model has a normalized structure with a relationship between data-values and entities
 <img width="522" alt="image" src="https://user-images.githubusercontent.com/68602/194168102-a19095a6-9f4c-449b-a5c2-d494f2f049a8.png">
 
 For visualization purposes we will assume that data will be provided to the visualization in a denormalized form:
