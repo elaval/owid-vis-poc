@@ -1,11 +1,11 @@
-// @elaval/owid-vis-poc v0.2.3 Copyright 
+// @elaval/owid-vis-poc v0.3.0 Copyright 
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
 (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.owidVis = global.owidVis || {}));
 })(this, (function (exports) { 'use strict';
 
-var version = "0.2.3";
+var version = "0.3.0";
 
 function ascending$1(a, b) {
   return a == null || b == null ? NaN : a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
