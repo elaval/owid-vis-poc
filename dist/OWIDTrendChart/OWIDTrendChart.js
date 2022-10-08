@@ -13,7 +13,6 @@ export class OWIDTrendChart extends OWIDChart {
     _years = [];
     _values = [];
     _maxYear;
-    _visibleValues = [];
     constructor(data, options) {
         super(data, options);
         this._dimensions = {
@@ -79,7 +78,6 @@ export class OWIDTrendChart extends OWIDChart {
             .uniq()
             .value();
         this._maxYear = _.max(this._years);
-        this._visibleValues = _.range(Math.floor(_.min(this._values)), Math.ceil(_.max(this._values))).filter((d) => d % 5 == 0);
         this._seriesData = _.chain(this._data)
             .groupBy((d) => d.entityName)
             .map((items, entityName) => ({ name: entityName, data: items }))

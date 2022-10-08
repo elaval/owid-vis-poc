@@ -13,7 +13,6 @@ export declare class OWIDTrendChart extends OWIDChart {
     private _years;
     private _values;
     private _maxYear;
-    private _visibleValues;
     constructor(data: any, options: any);
     protected startupSettings(): void;
     render(): void;
