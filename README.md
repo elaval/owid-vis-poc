@@ -63,8 +63,7 @@ In the source code, all visualization are Javascript (actually TypeScript) class
 
 Visualizations are represented as visual elements in the DOM which include a \<div> wrapper that contains a \<svg> element which contains a \<g> element.  This \<g> element will be the main container for all visual elements that constitute a specific chart (e.g. lines for TrendChart, rectangles for BarChart, axis, ...)  
 
-<img width="1443" alt="image" src="https://user-images.githubusercontent.com/68602/193721282-f277048e-c751-4173-abf6-8137528e4e9c.png">
-
+<img width="1435" alt="image" src="https://user-images.githubusercontent.com/68602/194780611-c91d3df6-38b7-442e-9351-6d8564281a7f.png">
 Most of the visual elements are created, configured and transformed using D3js (https://d3js.org/) which has became a de-facto library for data visualization.
 
 Each visualization class provides a series of methods that allow the user to provide specific configurations.  
