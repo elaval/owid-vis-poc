@@ -1,11 +1,11 @@
-// @elaval/owid-vis-poc v0.3.0 Copyright 
+// @elaval/owid-vis-poc v0.3.1 Copyright 
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 typeof define === 'function' && define.amd ? define(['exports'], factory) :
 (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.owidVis = global.owidVis || {}));
 })(this, (function (exports) { 'use strict';
 
-var version = "0.3.0";
+var version = "0.3.1";
 
 function ascending$1(a, b) {
   return a == null || b == null ? NaN : a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -24648,7 +24648,6 @@ class OWIDMap extends OWIDChart {
     }
     handleMouseMove(e, d, el) {
         const pos_relTarget = pointer(e);
-        pointer(e, this._chartContainer);
         const value = this._dictValues[d.country];
         this._toolTip.show([pos_relTarget[0], pos_relTarget[1]], {
             country: d.country,

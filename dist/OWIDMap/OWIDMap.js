@@ -120,7 +120,6 @@ export class OWIDMap extends OWIDChart {
     }
     handleMouseMove(e, d, el) {
         const pos_relTarget = d3.pointer(e);
-        const pos_relContainer = d3.pointer(e, this._chartContainer);
         const value = this._dictValues[d.country];
         this._toolTip.show([pos_relTarget[0], pos_relTarget[1]], {
             country: d.country,
