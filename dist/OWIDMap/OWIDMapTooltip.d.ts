@@ -5,8 +5,9 @@ export declare class OWIDMapTooltip {
     constructor(options: any);
     render(): any;
     show(pos: any[], options: {
-        year: any;
-        data: any;
+        country: any;
+        value: any;
+        year: number;
     }): void;
     hide(): void;
 }

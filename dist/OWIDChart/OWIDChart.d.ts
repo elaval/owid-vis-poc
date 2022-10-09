@@ -19,6 +19,7 @@ export declare class OWIDChart {
     };
     protected _scaleColor: d3.ScaleOrdinal<string, string, never>;
     protected _chartContainer: d3.Selection<any, undefined, null, undefined>;
+    protected _mainContainer: d3.Selection<any, undefined, null, undefined>;
     protected _chartSVG: any;
     protected _toolTip: any;
     protected _colorScale: any;
@@ -65,8 +66,6 @@ export declare class OWIDChart {
    * @returns current unit | current OWIDBarChart object
    */
     y(options: {}): OWIDChart | {};
-    handleMouseMove(e: any): void;
-    handleMouseLeave(): void;
     protected getDimensionValues(dimension: string): any;
     protected getTextWidth(text: any, fontSize: string | number, fontFace: string): number;
     render(): void;

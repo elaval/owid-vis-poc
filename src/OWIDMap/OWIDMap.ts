@@ -23,9 +23,6 @@ export class OWIDMap extends OWIDChart {
 
     this._year = options && options.year;
 
-    // For barchart we overwrite the default marginBottom fo give more space for x axis
-    this._marginBottom = config.marginBottom;
-
     this._toolTip = new OWIDMapTooltip({ colorScale: this._colorScale, containerWidth: this._width });
     this._chartContainer.node().appendChild(this._toolTip.render().node());
     this._scaleValues = d3.scaleLinear();
@@ -77,15 +74,10 @@ export class OWIDMap extends OWIDChart {
 
 
   render() {
+    const self = this;
 
     // Main <g> container where we display the visual elements
     const mainContainer = this._chartContainer.select("svg").select("g.container")
-
-    // Capture mouse events on background rect
-    mainContainer
-      .select("rect.backgroundLayer")
-      .on("mousemove", (e) => this.handleMouseMove(e))
-      .on("mouseleave", () => this.handleMouseLeave());
 
     const projection = projections.geoRobinson();
     const pathBuilder = d3.geoPath(projection);
@@ -99,13 +91,18 @@ export class OWIDMap extends OWIDChart {
     .data(countriesPaths)
     .join("path")
     .attr("class", "country")
+    .attr("id", (d:any) => d.country.replace(" ", "_"))
     .attr("d", (d:any) => d.path)
     .attr("stroke", (d) => "grey")
+    .attr("stroke-width", config.strokeWidthUnhighligthed)
     .attr("fill", (d:any) => {
       const value  = this._dictValues[d.country]; // gets the value for the country
       const relativeValue  = this._scaleValues(value); // normalized value to [0,1] range
       return value && d3.interpolateBlues(relativeValue) || "none";
-    });
+    })
+    .on("mouseenter", function(e,d) {self.handleMouseEnter(e,d, this)})
+    .on("mousemove", function(e,d) {self.handleMouseMove(e,d, this)})
+    .on("mousleave", function(e,d) {self.handleMouseLeave(e,d, this)});
 
   }
 
@@ -125,16 +122,56 @@ export class OWIDMap extends OWIDChart {
       }
     }
 
-  handleMouseMove(e: any): void {
-    const pos_relTarget = d3.pointer(e);
-    const pos_relContainer = d3.pointer(e, this._chartContainer);
+  highlightCountry(countryName:any) {
+    const mainContainer = this._chartSVG.select("g.container")
+
+    const countryId = countryName.replace(" ", "_");
+
+    // Unhighlight all countries (set border to default with)
+    mainContainer.selectAll("path.country")
+    .attr("stroke-width", config.strokeWidthUnhighligthed);
+
+    // Highlight the referenced country (set border to highlighted width)
+    mainContainer.selectAll(`path.country#${countryId}`)
+    .attr("stroke-width", config.strokeWidthHighligthed);
   }
 
-  handleMouseLeave(): void {
-    this._chartContent && this._chartContent.hideMarker();
+  unHighlightCountry(countryName:any) {
+    const mainContainer = this._chartSVG.select("g.container")
+
+    const countryId = countryName.replace(" ", "_");
+
+    // Highlight the referenced country (set border to highlighted width)
+    mainContainer.selectAll(`path.country#${countryId}`)
+    .attr("stroke-width", config.strokeWidthUnhighligthed);
+
+  }
+
+  handleMouseEnter(e: any, d: any, el:any): void {
+    const countryName = d && d.country;
+    this.highlightCountry(countryName);
+  }
+
+
+  handleMouseMove(e: any, d: any, el:any): void {
+    const pos_relTarget = d3.pointer(e);
+    const value = this._dictValues[d.country]
+
+
+    this._toolTip.show([pos_relTarget[0], pos_relTarget[1]], {
+      country: d.country,
+      value: value && `${d3.format(".1f")(value)} ${this._unit}` || `N/A`,
+      year: this._year
+    });
+  }
+
+  handleMouseLeave(e: any, d: any, el:any): void {
+    const countryName = d && d.country;
+    this.unHighlightCountry(countryName);
     this._toolTip.hide();
   }
 
+  
 
   getDimensionValues(dimension: string): any {
     return _.chain(this._data)

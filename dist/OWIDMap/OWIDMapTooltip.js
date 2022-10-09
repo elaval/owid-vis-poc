@@ -21,66 +21,36 @@ export class OWIDMapTooltip {
             .style("text-align", "left")
             .style("font-size", "0.9em")
             .style("padding", "0.3em").html(`
-      <table>
-        <thead>
-          <tr><td colspan="3">DUMMY YEAR<td><tr>
-        </thead>
-        <tbody>
-        </tbody>
-      </table>
+      <div>
+        <div class="name"></div>
+        <div class="value-wrapper">
+          <div class="value" style="color: rgb(183, 135, 95);"></div>
+          <div class="time"></div>
+        </div>
+      </div>
       `);
-        this.toolTip
-            .append("table")
-            .style("font-size", "0.9em")
-            .style("line-height", "1.4em")
-            .style("white-space", "normal")
-            .call((table) => table.append("thead"))
-            .call((table) => table.append("tbody"));
     }
     render() {
         return this.toolTip;
     }
     show(pos, options) {
+        const country = options && options.country;
+        const value = options && options.value;
         const year = options && options.year;
-        const data = options && options.data;
         this.toolTip
             .style("display", "block")
             .style("top", `${pos[1]}px`)
-            .style("left", `${pos[0]}px`);
+            .style("left", `${pos[0] + 30}px`);
         // Add year information on table header
-        this.toolTip.select("thead").select("td").text(year);
-        // Add rows with entityName, value data
-        this.toolTip
-            .select("tbody")
-            .selectAll("tr")
-            .data(data)
-            .join((enter) => {
-            enter
-                .append("tr")
-                .call((tr) => tr
-                .append("td")
-                .attr("class", "symbol")
-                .append("div")
-                .attr("style", "width: 10px; height: 10px; border-radius: 5px; background-color: grey; display: inline-block; margin-right: 2px;"))
-                .call((tr) => tr.append("td").attr("class", "entityName"))
-                .call((tr) => tr.append("td").attr("class", "value"));
-        }, (update) => {
-            update
-                .selectAll("td")
-                .style("color", (d) => this.colorScale(d.entityName));
-            update
-                .select("td.symbol")
-                .select("div")
-                .style("background-color", (d) => this.colorScale(d.entityName));
-            update.select("td.entityName").text((d) => d.entityName);
-            update.select("td.value").text((d) => d.value);
-        });
+        this.toolTip.select("div.name").text(country);
+        this.toolTip.select("div.value").text(value);
+        this.toolTip.select("div.time").text(year);
         // Check if tooltip goes beyond right border
         const tooltipWidth = this.toolTip
             .node()
             .getBoundingClientRect().width;
         if (pos[0] > this.containerWidth - tooltipWidth) {
-            this.toolTip.style("left", `${pos[0] - tooltipWidth - 30}px`);
+            this.toolTip.style("left", `${pos[0] - tooltipWidth}px`);
         }
     }
     hide() {

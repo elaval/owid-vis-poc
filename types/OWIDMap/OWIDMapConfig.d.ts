@@ -1,3 +1,4 @@
 export declare const config: {
-    marginBottom: number;
+    strokeWidthUnhighligthed: number;
+    strokeWidthHighligthed: number;
 };

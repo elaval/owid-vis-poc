@@ -16,8 +16,11 @@ export declare class OWIDMap extends OWIDChart {
    * @returns
    */
     year(year: number): OWIDMap | number;
-    handleMouseMove(e: any): void;
-    handleMouseLeave(): void;
+    highlightCountry(countryName: any): void;
+    unHighlightCountry(countryName: any): void;
+    handleMouseEnter(e: any, d: any, el: any): void;
+    handleMouseMove(e: any, d: any, el: any): void;
+    handleMouseLeave(e: any, d: any, el: any): void;
     getDimensionValues(dimension: string): any;
     getTextWidth(text: any, fontSize: string | number, fontFace: string): number;
     node(): any;

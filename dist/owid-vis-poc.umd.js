@@ -23321,6 +23321,7 @@ class OWIDChart {
     _dimensions;
     _scaleColor;
     _chartContainer;
+    _mainContainer;
     _chartSVG;
     _toolTip;
     _colorScale;
@@ -23354,6 +23355,10 @@ class OWIDChart {
             .attr("style", "position: relative; clear: both;");
         this._chartSVG = this._chartContainer
             .append("svg");
+        /*this._mainContainer = this._chartSVG
+          .append("g")
+          .attr("class", "container")*/
+        this._mainContainer = this._chartSVG.append("g");
         this.setupSVGElements();
         this.baseStartupSettings();
     }
@@ -23367,17 +23372,20 @@ class OWIDChart {
             .attr("width", this._widthTotal)
             .attr("height", this._heightTotal)
             .attr("viewBox", `0 0 ${this._widthTotal} ${this._heightTotal}`)
-            .call((svg) => svg.append("style").text(this.css()))
-            .call((svg) => svg
+            .call((svg) => svg.append("style").text(this.css()));
+        /*.call((svg:any) =>
+          svg
             .append("rect")
-            .attr("class", "bgLayer")
+            .attr("class","bgLayer")
             .attr("width", this._widthTotal)
             .attr("height", this._heightTotal)
-            .attr("fill", "white"));
+            .attr("fill", "white")
+        );*/
         // If it does not already exists, we add a <g> element that will be the main container
-        const mainContainer = this._chartSVG.selectAll("g.container")
-            .data([null]) // we will use D· data joins to create a single instance of the element
-            .join("g")
+        this._mainContainer
+            /*= this._chartSVG.selectAll("g.container")
+              .data([null])  // we will use D3 data joins to create a single instance of the element
+              .join("g")*/
             .attr("class", "container")
             .attr("transform", `translate(${this._marginLeft}, ${this._marginTop})`)
             .call((g) => g
@@ -23394,10 +23402,6 @@ class OWIDChart {
             .append("g")
             .attr("class", "axis y")
             .attr("transform", `translate(0,0)`));
-        mainContainer
-            .select("rect.backgroundLayer")
-            .on("mousemove", (e) => this.handleMouseMove(e))
-            .on("mouseleave", () => this.handleMouseLeave());
     }
     /**
      * startupSettings()
@@ -23525,13 +23529,6 @@ class OWIDChart {
             return this._y;
         }
     }
-    handleMouseMove(e) {
-        pointer(e);
-        pointer(e, this._chartContainer);
-    }
-    handleMouseLeave() {
-        this._chartContent && this._chartContent.hideMarker();
-    }
     getDimensionValues(dimension) {
         return lodash.exports.chain(this._data)
             .map((d) => d[dimension])
@@ -23648,7 +23645,10 @@ class OWIDTrendChartTooltip {
 
 const config$2 = {
     // Margins for main chart content within <svg> element
-    marginBottom: 50
+    marginBottom: 50,
+    // Size of the line dots when they areor not  higlighted 
+    dotSizeUnhighlighted: 2,
+    dotSizeHighlighted: 4,
 };
 
 class OWIDTrendChart extends OWIDChart {
@@ -23772,13 +23772,13 @@ class OWIDTrendChart extends OWIDChart {
             .attr("cx", (d) => this._scaleX(d.year))
             .attr("cy", (d) => this._scaleY(d.value))
             .attr("r", 2);
-        const legendMark = series
-            .selectAll("g.legendMark")
+        const entitiesNames = series
+            .selectAll("g.entitiesNames")
             .data((d) => [lodash.exports.last(d.data)])
             .join("g")
-            .attr("class", "legendMark")
+            .attr("class", "entitiesNames")
             .attr("transform", (d) => `translate(${this._scaleX(this._maxYear)},${this._scaleY(d.value)})`);
-        legendMark
+        entitiesNames
             .selectAll("text")
             .data((d) => [d])
             .join("text")
@@ -23788,6 +23788,30 @@ class OWIDTrendChart extends OWIDChart {
             .attr("font-weight", 400)
             .attr("fill", (d) => this._scaleColor(d.entityName))
             .text((d) => d.entityName);
+    }
+    showMarker(year) {
+        this._mainContainer
+            .selectAll("g.serie")
+            .selectAll("circle.dot")
+            .attr("r", (d) => d.year == year ? config$2.dotSizeHighlighted : config$2.dotSizeUnhighlighted);
+        this._mainContainer
+            .selectAll("line.marker")
+            .data([year])
+            .join("line")
+            .attr("class", "marker")
+            .attr("y1", this._scaleY.range()[1])
+            .attr("y2", this._scaleY.range()[0])
+            .attr("x1", this._scaleX(year))
+            .attr("x2", this._scaleX(year))
+            .attr("stroke", "grey")
+            .attr("stroke-width", 1);
+    }
+    hideMarker() {
+        this._mainContainer
+            .selectAll("g.serie")
+            .selectAll("circle.dot")
+            .attr("r", config$2.dotSizeUnhighlighted);
+        this._mainContainer.selectAll("line.marker").remove();
     }
     /**
      * Gets / sets the callback function for selectedYear
@@ -23807,7 +23831,7 @@ class OWIDTrendChart extends OWIDChart {
         const pos_relTarget = pointer(e);
         const pos_relContainer = pointer(e, this._chartContainer);
         const selectedYear = this.getClosestYear(pos_relTarget[0]);
-        this._chartContent && this._chartContent.showMarker(selectedYear);
+        this.showMarker(selectedYear);
         const tooltipData = lodash.exports.chain(this._seriesData)
             .map((d) => {
             const yearRecord = d.data.find((d) => d.year == selectedYear);
@@ -24370,66 +24394,36 @@ class OWIDMapTooltip {
             .style("text-align", "left")
             .style("font-size", "0.9em")
             .style("padding", "0.3em").html(`
-      <table>
-        <thead>
-          <tr><td colspan="3">DUMMY YEAR<td><tr>
-        </thead>
-        <tbody>
-        </tbody>
-      </table>
+      <div>
+        <div class="name"></div>
+        <div class="value-wrapper">
+          <div class="value" style="color: rgb(183, 135, 95);"></div>
+          <div class="time"></div>
+        </div>
+      </div>
       `);
-        this.toolTip
-            .append("table")
-            .style("font-size", "0.9em")
-            .style("line-height", "1.4em")
-            .style("white-space", "normal")
-            .call((table) => table.append("thead"))
-            .call((table) => table.append("tbody"));
     }
     render() {
         return this.toolTip;
     }
     show(pos, options) {
+        const country = options && options.country;
+        const value = options && options.value;
         const year = options && options.year;
-        const data = options && options.data;
         this.toolTip
             .style("display", "block")
             .style("top", `${pos[1]}px`)
-            .style("left", `${pos[0]}px`);
+            .style("left", `${pos[0] + 30}px`);
         // Add year information on table header
-        this.toolTip.select("thead").select("td").text(year);
-        // Add rows with entityName, value data
-        this.toolTip
-            .select("tbody")
-            .selectAll("tr")
-            .data(data)
-            .join((enter) => {
-            enter
-                .append("tr")
-                .call((tr) => tr
-                .append("td")
-                .attr("class", "symbol")
-                .append("div")
-                .attr("style", "width: 10px; height: 10px; border-radius: 5px; background-color: grey; display: inline-block; margin-right: 2px;"))
-                .call((tr) => tr.append("td").attr("class", "entityName"))
-                .call((tr) => tr.append("td").attr("class", "value"));
-        }, (update) => {
-            update
-                .selectAll("td")
-                .style("color", (d) => this.colorScale(d.entityName));
-            update
-                .select("td.symbol")
-                .select("div")
-                .style("background-color", (d) => this.colorScale(d.entityName));
-            update.select("td.entityName").text((d) => d.entityName);
-            update.select("td.value").text((d) => d.value);
-        });
+        this.toolTip.select("div.name").text(country);
+        this.toolTip.select("div.value").text(value);
+        this.toolTip.select("div.time").text(year);
         // Check if tooltip goes beyond right border
         const tooltipWidth = this.toolTip
             .node()
             .getBoundingClientRect().width;
         if (pos[0] > this.containerWidth - tooltipWidth) {
-            this.toolTip.style("left", `${pos[0] - tooltipWidth - 30}px`);
+            this.toolTip.style("left", `${pos[0] - tooltipWidth}px`);
         }
     }
     hide() {
@@ -24536,8 +24530,8 @@ function object(topology, o) {
 }
 
 const config = {
-    // Margins for main chart content within <svg> element
-    marginBottom: 50
+    strokeWidthUnhighligthed: 1,
+    strokeWidthHighligthed: 2,
 };
 
 class OWIDMap extends OWIDChart {
@@ -24551,8 +24545,6 @@ class OWIDMap extends OWIDChart {
     constructor(data, options) {
         super(data, options);
         this._year = options && options.year;
-        // For barchart we overwrite the default marginBottom fo give more space for x axis
-        this._marginBottom = config.marginBottom;
         this._toolTip = new OWIDMapTooltip({ colorScale: this._colorScale, containerWidth: this._width });
         this._chartContainer.node().appendChild(this._toolTip.render().node());
         this._scaleValues = linear();
@@ -24591,13 +24583,9 @@ class OWIDMap extends OWIDChart {
         super.baseStartupSettings();
     }
     render() {
+        const self = this;
         // Main <g> container where we display the visual elements
         const mainContainer = this._chartContainer.select("svg").select("g.container");
-        // Capture mouse events on background rect
-        mainContainer
-            .select("rect.backgroundLayer")
-            .on("mousemove", (e) => this.handleMouseMove(e))
-            .on("mouseleave", () => this.handleMouseLeave());
         const projection = robinson();
         const pathBuilder = index(projection);
         const world = feature(worldTopojson, worldTopojson.objects.world);
@@ -24608,13 +24596,18 @@ class OWIDMap extends OWIDChart {
             .data(countriesPaths)
             .join("path")
             .attr("class", "country")
+            .attr("id", (d) => d.country.replace(" ", "_"))
             .attr("d", (d) => d.path)
             .attr("stroke", (d) => "grey")
+            .attr("stroke-width", config.strokeWidthUnhighligthed)
             .attr("fill", (d) => {
             const value = this._dictValues[d.country]; // gets the value for the country
             const relativeValue = this._scaleValues(value); // normalized value to [0,1] range
             return value && Blues(relativeValue) || "none";
-        });
+        })
+            .on("mouseenter", function (e, d) { self.handleMouseEnter(e, d, this); })
+            .on("mousemove", function (e, d) { self.handleMouseMove(e, d, this); })
+            .on("mousleave", function (e, d) { self.handleMouseLeave(e, d, this); });
     }
     /**
    * Gets / sets the year that is a target for our data
@@ -24632,12 +24625,40 @@ class OWIDMap extends OWIDChart {
             return this._year;
         }
     }
-    handleMouseMove(e) {
-        pointer(e);
-        pointer(e, this._chartContainer);
+    highlightCountry(countryName) {
+        const mainContainer = this._chartSVG.select("g.container");
+        const countryId = countryName.replace(" ", "_");
+        // Unhighlight all countries (set border to default with)
+        mainContainer.selectAll("path.country")
+            .attr("stroke-width", config.strokeWidthUnhighligthed);
+        // Highlight the referenced country (set border to highlighted width)
+        mainContainer.selectAll(`path.country#${countryId}`)
+            .attr("stroke-width", config.strokeWidthHighligthed);
     }
-    handleMouseLeave() {
-        this._chartContent && this._chartContent.hideMarker();
+    unHighlightCountry(countryName) {
+        const mainContainer = this._chartSVG.select("g.container");
+        const countryId = countryName.replace(" ", "_");
+        // Highlight the referenced country (set border to highlighted width)
+        mainContainer.selectAll(`path.country#${countryId}`)
+            .attr("stroke-width", config.strokeWidthUnhighligthed);
+    }
+    handleMouseEnter(e, d, el) {
+        const countryName = d && d.country;
+        this.highlightCountry(countryName);
+    }
+    handleMouseMove(e, d, el) {
+        const pos_relTarget = pointer(e);
+        pointer(e, this._chartContainer);
+        const value = this._dictValues[d.country];
+        this._toolTip.show([pos_relTarget[0], pos_relTarget[1]], {
+            country: d.country,
+            value: value && `${format(".1f")(value)} ${this._unit}` || `N/A`,
+            year: this._year
+        });
+    }
+    handleMouseLeave(e, d, el) {
+        const countryName = d && d.country;
+        this.unHighlightCountry(countryName);
         this._toolTip.hide();
     }
     getDimensionValues(dimension) {

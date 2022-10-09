@@ -170,17 +170,17 @@ export class OWIDTrendChart extends OWIDChart {
       .attr("cy", (d: any) => this._scaleY(d.value))
       .attr("r", 2);
 
-    const legendMark = series
-      .selectAll("g.legendMark")
+    const entitiesNames = series
+      .selectAll("g.entitiesNames")
       .data((d: { data: _.List<unknown> | null | undefined; }) => [_.last(d.data)])
       .join("g")
-      .attr("class", "legendMark")
+      .attr("class", "entitiesNames")
       .attr(
         "transform",
         (d: any) => `translate(${this._scaleX(<number>this._maxYear)},${this._scaleY(d.value)})`
       );
 
-    legendMark
+      entitiesNames
       .selectAll("text")
       .data((d: any) => [d])
       .join("text")
@@ -192,6 +192,38 @@ export class OWIDTrendChart extends OWIDChart {
       .text((d: { entityName: any; }) => d.entityName);
 
   }
+
+ 
+  showMarker(year: any) {
+    this._mainContainer
+      .selectAll("g.serie")
+      .selectAll("circle.dot")
+      .attr("r", (d: any) =>
+        d.year == year ? config.dotSizeHighlighted : config.dotSizeUnhighlighted
+      );
+
+      this._mainContainer
+      .selectAll("line.marker")
+      .data([year])
+      .join("line")
+      .attr("class", "marker")
+      .attr("y1", this._scaleY.range()[1])
+      .attr("y2", this._scaleY.range()[0])
+      .attr("x1", this._scaleX(year))
+      .attr("x2", this._scaleX(year))
+      .attr("stroke", "grey")
+      .attr("stroke-width", 1);
+  }
+
+  hideMarker() {
+    this._mainContainer
+      .selectAll("g.serie")
+      .selectAll("circle.dot")
+      .attr("r", config.dotSizeUnhighlighted);
+
+      this._mainContainer.selectAll("line.marker").remove();
+  }
+
 
   /**
    * Gets / sets the callback function for selectedYear
@@ -212,7 +244,7 @@ export class OWIDTrendChart extends OWIDChart {
     const pos_relContainer = d3.pointer(e, this._chartContainer);
 
     const selectedYear = this.getClosestYear(pos_relTarget[0]);
-    this._chartContent && this._chartContent.showMarker(selectedYear);
+    this.showMarker(selectedYear);
 
     const tooltipData = _.chain(this._seriesData)
       .map((d: { data: any[]; name: any; }) => {

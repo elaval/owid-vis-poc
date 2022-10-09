@@ -19,6 +19,7 @@ export class OWIDChart {
     _dimensions;
     _scaleColor;
     _chartContainer;
+    _mainContainer;
     _chartSVG;
     _toolTip;
     _colorScale;
@@ -53,6 +54,10 @@ export class OWIDChart {
             .attr("style", "position: relative; clear: both;");
         this._chartSVG = this._chartContainer
             .append("svg");
+        /*this._mainContainer = this._chartSVG
+          .append("g")
+          .attr("class", "container")*/
+        this._mainContainer = this._chartSVG.append("g");
         this.setupSVGElements();
         this.baseStartupSettings();
     }
@@ -66,17 +71,20 @@ export class OWIDChart {
             .attr("width", this._widthTotal)
             .attr("height", this._heightTotal)
             .attr("viewBox", `0 0 ${this._widthTotal} ${this._heightTotal}`)
-            .call((svg) => svg.append("style").text(this.css()))
-            .call((svg) => svg
+            .call((svg) => svg.append("style").text(this.css()));
+        /*.call((svg:any) =>
+          svg
             .append("rect")
-            .attr("class", "bgLayer")
+            .attr("class","bgLayer")
             .attr("width", this._widthTotal)
             .attr("height", this._heightTotal)
-            .attr("fill", "white"));
+            .attr("fill", "white")
+        );*/
         // If it does not already exists, we add a <g> element that will be the main container
-        const mainContainer = this._chartSVG.selectAll("g.container")
-            .data([null]) // we will use D· data joins to create a single instance of the element
-            .join("g")
+        this._mainContainer
+            /*= this._chartSVG.selectAll("g.container")
+              .data([null])  // we will use D3 data joins to create a single instance of the element
+              .join("g")*/
             .attr("class", "container")
             .attr("transform", `translate(${this._marginLeft}, ${this._marginTop})`)
             .call((g) => g
@@ -93,10 +101,6 @@ export class OWIDChart {
             .append("g")
             .attr("class", "axis y")
             .attr("transform", `translate(0,0)`));
-        mainContainer
-            .select("rect.backgroundLayer")
-            .on("mousemove", (e) => this.handleMouseMove(e))
-            .on("mouseleave", () => this.handleMouseLeave());
     }
     /**
      * startupSettings()
@@ -223,13 +227,6 @@ export class OWIDChart {
         else {
             return this._y;
         }
-    }
-    handleMouseMove(e) {
-        const pos_relTarget = d3.pointer(e);
-        const pos_relContainer = d3.pointer(e, this._chartContainer);
-    }
-    handleMouseLeave() {
-        this._chartContent && this._chartContent.hideMarker();
     }
     getDimensionValues(dimension) {
         return _.chain(this._data)

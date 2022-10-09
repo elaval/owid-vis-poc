@@ -28,6 +28,8 @@ export class OWIDChart {
   protected _scaleColor: d3.ScaleOrdinal<string, string, never>;
 
   protected _chartContainer: d3.Selection<any, undefined, null, undefined>;
+  protected _mainContainer: d3.Selection<any, undefined, null, undefined> ;
+
   protected _chartSVG: any;
   protected _toolTip: any;
   protected _colorScale: any;
@@ -77,6 +79,12 @@ export class OWIDChart {
     this._chartSVG = this._chartContainer
       .append("svg");
 
+    /*this._mainContainer = this._chartSVG
+      .append("g")
+      .attr("class", "container")*/
+
+    this._mainContainer = this._chartSVG.append("g")
+
     this.setupSVGElements();
     this.baseStartupSettings();
 
@@ -96,19 +104,20 @@ export class OWIDChart {
         `0 0 ${this._widthTotal} ${this._heightTotal}`
       )
       .call((svg:any) => svg.append("style").text(this.css()))
-      .call((svg:any) =>
+      /*.call((svg:any) =>
         svg
           .append("rect")
           .attr("class","bgLayer")
           .attr("width", this._widthTotal)
           .attr("height", this._heightTotal)
           .attr("fill", "white")
-      );
+      );*/
 
     // If it does not already exists, we add a <g> element that will be the main container
-    const mainContainer = this._chartSVG.selectAll("g.container")
-      .data([null])  // we will use D· data joins to create a single instance of the element
-      .join("g")
+    this._mainContainer
+    /*= this._chartSVG.selectAll("g.container")
+      .data([null])  // we will use D3 data joins to create a single instance of the element
+      .join("g")*/
       .attr("class", "container")
       .attr("transform", `translate(${this._marginLeft}, ${this._marginTop})`)
       .call((g:any) =>
@@ -131,11 +140,6 @@ export class OWIDChart {
           .attr("class", "axis y")
           .attr("transform", `translate(0,0)`)
       );
-
-    mainContainer
-      .select("rect.backgroundLayer")
-      .on("mousemove", (e: any) => this.handleMouseMove(e))
-      .on("mouseleave", () => this.handleMouseLeave());
 
   }
 
@@ -282,16 +286,6 @@ export class OWIDChart {
         return this._y
       }
     }
-
-  handleMouseMove(e: any): void {
-    const pos_relTarget = d3.pointer(e);
-    const pos_relContainer = d3.pointer(e, this._chartContainer);
-  }
-
-  handleMouseLeave(): void {
-    this._chartContent && this._chartContent.hideMarker();
-  }
-
 
   protected getDimensionValues(dimension: string): any {
     return _.chain(this._data)

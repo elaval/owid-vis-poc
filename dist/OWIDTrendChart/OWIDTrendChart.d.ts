@@ -16,6 +16,8 @@ export declare class OWIDTrendChart extends OWIDChart {
     constructor(data: any, options: any);
     protected startupSettings(): void;
     render(): void;
+    showMarker(year: any): void;
+    hideMarker(): void;
     /**
      * Gets / sets the callback function for selectedYear
      * @param _selectedYearCallback
