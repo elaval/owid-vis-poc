@@ -59,8 +59,6 @@ The visualization library will export an object - **owidVIS** - that will provid
 * **OWIDMap()**: Creates a world map with values for entities in a specific year
 ...
 
-Note: This POC illustrates the concept with TrendChart and BarChart prototypes
-
 In the source code, all visualization are Javascript (actually TypeScript) classes that are derived from a parent class - **OWIDChart** - which provides elements and functions that are common to all visualizations.
 
 Visualizations are represented as visual elements in the DOM which include a \<div> wrapper that contains a \<svg> element which contains a \<g> element.  This \<g> element will be the main container for all visual elements that constitute a specific chart (e.g. lines for TrendChart, rectangles for BarChart, axis, ...)  
