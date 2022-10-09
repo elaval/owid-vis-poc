@@ -17,7 +17,7 @@
     "publish_": "npm publish --access=public",
     "version_": "npm version patch"
   },
-  "version": "0.3.1",
+  "version": "0.3.2",
   "devDependencies": {
     "@open-wc/building-rollup": "^2.0.2",
     "@rollup/plugin-commonjs": "^19.0.2",
