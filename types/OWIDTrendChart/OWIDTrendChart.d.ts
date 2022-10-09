@@ -7,7 +7,7 @@ import { OWIDChart } from '../OWIDChart/OWIDChart';
  *
  * There is a marker that higights all points in a specific year (shown on mouse movement)
  *
- * There is a tooltipo that displays values for all entities on a given year
+ * There is a tooltip that displays values for all entities on a given year
  */
 export declare class OWIDTrendChart extends OWIDChart {
     protected _scaleX: d3.ScaleLinear<number, number, never>;
@@ -94,13 +94,6 @@ export declare class OWIDTrendChart extends OWIDChart {
      */
     handleMouseLeave(e: any, d: any, el: any): void;
     /**
-     * Extracts from the data the collection of unique values for a given dimension (e.g. years / entityNames)
-     *
-     * @param dimension dimension included in the data ("year" | "entityName")
-     * @returns array with dimension values
-     */
-    getDimensionValues(dimension: string): any;
-    /**
      * We need to accomodate enough space on the left margin for the y axis ticks
      *
      * We estiemate the max width of the text for all ticks values and the unit descriptor
@@ -116,15 +109,6 @@ export declare class OWIDTrendChart extends OWIDChart {
      * @returns witdh Estimated margin space needed
      */
     calculateMarginRight(): number;
-    /**
-     * Auxiliary function that gets the size of a text given the text / fontSize and fontFace
-     *
-     * @param text
-     * @param fontSize
-     * @param fontFace
-     * @returns estinated text width
-     */
-    getTextWidth(text: any, fontSize: string | number, fontFace: string): number;
     /**
      * We show a grid (lines on the chart) associated to each X tick
      */

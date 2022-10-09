@@ -10,7 +10,7 @@ import { config } from './OWIDTrendChartConfig';
  *
  * There is a marker that higights all points in a specific year (shown on mouse movement)
  *
- * There is a tooltipo that displays values for all entities on a given year
+ * There is a tooltip that displays values for all entities on a given year
  */
 export class OWIDTrendChart extends OWIDChart {
     _scaleX = d3.scaleLinear();
@@ -343,18 +343,6 @@ export class OWIDTrendChart extends OWIDChart {
         this._toolTip.hide();
     }
     /**
-     * Extracts from the data the collection of unique values for a given dimension (e.g. years / entityNames)
-     *
-     * @param dimension dimension included in the data ("year" | "entityName")
-     * @returns array with dimension values
-     */
-    getDimensionValues(dimension) {
-        return _.chain(this._data)
-            .map((d) => d[dimension])
-            .uniq()
-            .value();
-    }
-    /**
      * We need to accomodate enough space on the left margin for the y axis ticks
      *
      * We estiemate the max width of the text for all ticks values and the unit descriptor
@@ -382,23 +370,6 @@ export class OWIDTrendChart extends OWIDChart {
         const legendSized = legendContent.map((d) => this.getTextWidth(d, 16.2, "sans-serif"));
         const maxSize = _.max(legendSized);
         return maxSize * 1.5 || 10;
-    }
-    /**
-     * Auxiliary function that gets the size of a text given the text / fontSize and fontFace
-     *
-     * @param text
-     * @param fontSize
-     * @param fontFace
-     * @returns estinated text width
-     */
-    getTextWidth(text, fontSize, fontFace) {
-        const canvas = document.createElement("canvas"), context = canvas.getContext("2d");
-        let textWidth = null;
-        if (context) {
-            context.font = fontSize + "px " + fontFace;
-            textWidth = context.measureText(text).width;
-        }
-        return textWidth;
     }
     /**
      * We show a grid (lines on the chart) associated to each X tick

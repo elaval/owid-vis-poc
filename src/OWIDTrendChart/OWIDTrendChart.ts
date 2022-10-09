@@ -12,7 +12,7 @@ import { config } from './OWIDTrendChartConfig';
  * 
  * There is a marker that higights all points in a specific year (shown on mouse movement)
  * 
- * There is a tooltipo that displays values for all entities on a given year
+ * There is a tooltip that displays values for all entities on a given year
  */
 export class OWIDTrendChart extends OWIDChart {
   protected _scaleX: d3.ScaleLinear<number, number, never> = d3.scaleLinear();
@@ -410,19 +410,6 @@ export class OWIDTrendChart extends OWIDChart {
   }
 
 
-  /**
-   * Extracts from the data the collection of unique values for a given dimension (e.g. years / entityNames) 
-   * 
-   * @param dimension dimension included in the data ("year" | "entityName")
-   * @returns array with dimension values
-   */
-  getDimensionValues(dimension: string): any {
-    return _.chain(this._data)
-      .map((d: { [x: string]: any; }) => d[dimension])
-      .uniq()
-      .value();
-  }
-
 
   /**
    * We need to accomodate enough space on the left margin for the y axis ticks
@@ -461,29 +448,6 @@ export class OWIDTrendChart extends OWIDChart {
     return maxSize * 1.5 || 10;
   }
 
-  /**
-   * Auxiliary function that gets the size of a text given the text / fontSize and fontFace
-   * 
-   * @param text 
-   * @param fontSize 
-   * @param fontFace 
-   * @returns estinated text width
-   */
-  getTextWidth(text: any, fontSize: string | number, fontFace: string): number {
-    const canvas = document.createElement("canvas"),
-      context = canvas.getContext("2d");
-
-    let textWidth = null;
-
-    if (context) {
-      context.font = fontSize + "px " + fontFace;
-      textWidth = context.measureText(text).width
-    }
-
-
-    return textWidth as number;
-
-  }
 
   /**
    * We show a grid (lines on the chart) associated to each X tick 

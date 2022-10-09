@@ -74,7 +74,21 @@ export declare class OWIDChart {
    * @returns current unit | current OWIDBarChart object
    */
     y(options: {}): OWIDChart | {};
+    /**
+     * Extracts from the data the collection of unique values for a given dimension (e.g. years / entityNames)
+     *
+     * @param dimension dimension included in the data ("year" | "entityName")
+     * @returns array with dimension values
+     */
     protected getDimensionValues(dimension: string): any;
+    /**
+      * Auxiliary function that gets the size of a text given the text / fontSize and fontFace
+      *
+      * @param text
+      * @param fontSize
+      * @param fontFace
+      * @returns estinated text width
+      */
     protected getTextWidth(text: any, fontSize: string | number, fontFace: string): number;
     render(): void;
     node(): any;

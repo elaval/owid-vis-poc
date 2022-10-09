@@ -229,12 +229,26 @@ export class OWIDChart {
             return this._y;
         }
     }
+    /**
+     * Extracts from the data the collection of unique values for a given dimension (e.g. years / entityNames)
+     *
+     * @param dimension dimension included in the data ("year" | "entityName")
+     * @returns array with dimension values
+     */
     getDimensionValues(dimension) {
         return _.chain(this._data)
             .map((d) => d[dimension])
             .uniq()
             .value();
     }
+    /**
+      * Auxiliary function that gets the size of a text given the text / fontSize and fontFace
+      *
+      * @param text
+      * @param fontSize
+      * @param fontFace
+      * @returns estinated text width
+      */
     getTextWidth(text, fontSize, fontFace) {
         const canvas = document.createElement("canvas"), context = canvas.getContext("2d");
         let textWidth = null;
