@@ -18,7 +18,7 @@ export class OWIDMap extends OWIDChart {
         super(data, options);
         this._year = options && options.year;
         this._toolTip = new OWIDMapTooltip({ colorScale: this._colorScale, containerWidth: this._width });
-        this._chartContainer.node().appendChild(this._toolTip.render().node());
+        this._mainDivContainer.node().appendChild(this._toolTip.render().node());
         this._scaleValues = d3.scaleLinear();
         this.startupSettings();
         this.render();
@@ -57,7 +57,7 @@ export class OWIDMap extends OWIDChart {
     render() {
         const self = this;
         // Main <g> container where we display the visual elements
-        const mainContainer = this._chartContainer.select("svg").select("g.container");
+        const mainContainer = this._mainDivContainer.select("svg").select("g.container");
         const projection = projections.geoRobinson();
         const pathBuilder = d3.geoPath(projection);
         const world = topojson.feature(worldTopojson, worldTopojson.objects.world);
@@ -148,6 +148,6 @@ export class OWIDMap extends OWIDChart {
         return textWidth;
     }
     node() {
-        return this._chartContainer.node();
+        return this._mainDivContainer.node();
     }
 }

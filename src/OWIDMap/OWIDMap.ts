@@ -24,7 +24,7 @@ export class OWIDMap extends OWIDChart {
     this._year = options && options.year;
 
     this._toolTip = new OWIDMapTooltip({ colorScale: this._colorScale, containerWidth: this._width });
-    this._chartContainer.node().appendChild(this._toolTip.render().node());
+    this._mainDivContainer.node().appendChild(this._toolTip.render().node());
     this._scaleValues = d3.scaleLinear();
 
 
@@ -77,7 +77,7 @@ export class OWIDMap extends OWIDChart {
     const self = this;
 
     // Main <g> container where we display the visual elements
-    const mainContainer = this._chartContainer.select("svg").select("g.container")
+    const mainContainer = this._mainDivContainer.select("svg").select("g.container")
 
     const projection = projections.geoRobinson();
     const pathBuilder = d3.geoPath(projection);
@@ -201,7 +201,7 @@ export class OWIDMap extends OWIDChart {
 
 
   node() {
-    return this._chartContainer.node();
+    return this._mainDivContainer.node();
   }
 }
 

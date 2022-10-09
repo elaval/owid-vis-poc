@@ -5,6 +5,15 @@ import { OWIDChart } from '../OWIDChart/OWIDChart';
 import { OWIDTrendChartTooltip } from "./OWIDTrendChartTooltip";
 import { config } from './OWIDTrendChartConfig';
 
+/**
+ * Creates a line chart that shows the evolution of values on tine (years) 
+ * 
+ * For each entity we create a new series
+ * 
+ * There is a marker that higights all points in a specific year (shown on mouse movement)
+ * 
+ * There is a tooltipo that displays values for all entities on a given year
+ */
 export class OWIDTrendChart extends OWIDChart {
   protected _scaleX: d3.ScaleLinear<number, number, never> = d3.scaleLinear();
   protected _scaleY: d3.ScaleLinear<number, number, never> = d3.scaleLinear();
@@ -16,15 +25,37 @@ export class OWIDTrendChart extends OWIDChart {
   private _values: any[] = [];
   private _maxYear: number | undefined;
 
+  /**
+   * Creates a new trendChart (line chart with years in the x Axis and values in the y Axis) 
+   * 
+   * It is an extention of the OWIDChart class which creates a <svg> wrapped inside a <div> element
+   * 
+   * .node() method returns the <div> wrapper, which can be appended to existing DOM elements
+   * 
+   * Any OWIDChart instance has confuguration functions that,once called, will create a new rendering of the visualization
+   * 
+   * .data([]) dataset to be used in the visualization
+   * .width(number) total width of the chart
+   * .unit(string) unit descriptor ("years" | "people" ...)
+   * .x(options) options for the x Axis (e.g. {grid:true})
+   * .y(options) options for the x Axis (e.g. {grid:true})
+   * 
+   * @param data collection of {year:number; entityName:string, value:number} objects that will be used to render the visualization
+   * @param options optional initial configuration options {marginLeft:number; merginRight:number; selectedYearCallBack:function}
+   */
   constructor(data: any, options: any) {
     super(data, options);
-
-    this._dimensions = {
-      years: (options && options.years) || this.getDimensionValues("year"),
-      entities:
-        (options && options.enitites) || this.getDimensionValues("entityName")
+    /**
+     * We optain the collection of valid years and entityNames from the given data
+     */
+     this._dimensions = {
+      years: this.getDimensionValues("year"),
+      entities: this.getDimensionValues("entityName")
     };
 
+    /**
+     * Margins are defined around the <g> main container to allow space for titles, axes and entity labels
+     */
     this._marginLeft = options && options.marginLeft;
     this._marginRight = options && options._marginRight;
 
@@ -33,16 +64,35 @@ export class OWIDTrendChart extends OWIDChart {
     this._marginRight =
       (options && options.marginRight) || this.calculateMarginRight();
 
+    
+    /**
+     * Callback that is called with a year parameter whenever the users hovers over a new year location on the chart
+     */
     this._selectedYearCallback = options && options.selectedYearCallback || function () { };
 
+    /**
+     * We create a tooltip (<div> element) that will be appended to the charts main <div> container
+     */
     this._toolTip = new OWIDTrendChartTooltip({ colorScale: this._colorScale, containerWidth: this._width });
-    this._chartContainer.node().appendChild(this._toolTip.render().node());
+    this._mainDivContainer.node().appendChild(this._toolTip.render().node());
 
+    /**
+     * We configure supporting data and objects (margins, width, height, scales, axes, series,... ) and 
+     * then we render the visual elements for the visualization
+     */
     this.startupSettings();
     this.render();
 
   }
 
+
+  /**
+   * Configures / updates supporting data and objects (margins, width, height, scales, axes, series,... ) that 
+   * will be used for the visualization rendering
+   * 
+   * This method should be called each time we update configurations that will affect the chart rendering
+   * (e.g. after calling .data(), witdh(), ...)
+   */
   protected startupSettings() {
     super.baseStartupSettings();
 
@@ -114,44 +164,68 @@ export class OWIDTrendChart extends OWIDChart {
   }
 
 
+  /**
+   * Renders the visual elements of the chart inside the main <g> container
+   * 
+   * Most of the DOM management is done using D3js
+   */
   render() {
-
-    // Main <g> container where we display the visual elements
-    const mainContainer = this._chartContainer.select("svg").select("g.container")
+    const self = this;
 
     // Capture mouse events on background rect
-    mainContainer
+    this._mainContainer
       .select("rect.backgroundLayer")
-      .on("mousemove", (e) => this.handleMouseMove(e))
-      .on("mouseleave", () => this.handleMouseLeave());
+      .on("mousemove", function(e,d) {self.handleMouseMove(e,d,this)})
+      .on("mouseleave",function(e,d) {self.handleMouseLeave(e,d,this)});
 
+
+    /**
+     * Calculate the range of years (e.g. [1960, 2015]) and rangeValues (e.g. [49.5, 81.3] from data records
+     * 
+     * These ranges are used to define scale domains
+     */
     const rangeYears: [number, number] = <[number, number]>d3.extent(this._years);
     const rangeValues: [number, number] = <[number, number]>d3.extent(this._values);
 
     this._scaleX.domain(rangeYears);
     this._scaleY.domain(rangeValues);
 
-    mainContainer.select("g.axis.x").call(this._axisX as any);
-    mainContainer.select("g.axis.y").call(this._axisY as any);
+    /**
+     * We update the rendering of x / y axis
+     */
+    this._mainContainer.select("g.axis.x").call(this._axisX as any);
+    this._mainContainer.select("g.axis.y").call(this._axisY as any);
 
-    const chartContainer = mainContainer.selectAll("g.lineChartContainer")
+    /**
+     * If not already created, we create a <g> element that will include tha actual lines for the line chart
+     */
+    const chartContainer = this._mainContainer.selectAll("g.lineChartContainer")
       .data([null])
       .join("g")
       .attr("class", "lineChartContainer")
 
 
+    /**
+     * line builder that generates a path definition given a set of datapoints
+     */
     const line = d3
       .line()
       .x((d: any) => this._scaleX(d.year))
       .y((d: any) => this._scaleY(d.value));
 
+    /**
+     * We create a <g> element for each serie (each <g> contains the line associated an entity)
+     */
     const series = chartContainer
       .selectAll("g.serie")
       .data(this._seriesData, (d: any) => <string>d.name)
       .join("g")
       .attr("class", (d: { name: any; }) => `serie ${d.name}`);
 
-    const lines = series
+    /**
+     * We create the actual line (a <path> element) for each series
+     */
+    series
       .selectAll("path")
       .data((d: { data: any; }) => [d.data])
       .join("path")
@@ -160,7 +234,10 @@ export class OWIDTrendChart extends OWIDChart {
       .attr("stroke-width", 2)
       .attr("stroke", (d: { entityName: any; }[]) => this._scaleColor(d[0].entityName));
 
-    const dots = series
+    /**
+     * We add a dot <circle> for each datapoint
+     */
+    series
       .selectAll("circle.dot")
       .data((d: { data: any; }) => d.data)
       .join("circle")
@@ -170,6 +247,12 @@ export class OWIDTrendChart extends OWIDChart {
       .attr("cy", (d: any) => this._scaleY(d.value))
       .attr("r", 2);
 
+    /**
+     * All series labels (displayed at the end of the line on the right margin) will be displayes in a
+     * <g> element
+     * 
+     * In teh future we need to deal with the overlapping of labels
+     */
     const entitiesNames = series
       .selectAll("g.entitiesNames")
       .data((d: { data: _.List<unknown> | null | undefined; }) => [_.last(d.data)])
@@ -180,7 +263,10 @@ export class OWIDTrendChart extends OWIDChart {
         (d: any) => `translate(${this._scaleX(<number>this._maxYear)},${this._scaleY(d.value)})`
       );
 
-      entitiesNames
+    /**
+     * We display the actual text for each series label (usually coutry names)
+     */
+    entitiesNames
       .selectAll("text")
       .data((d: any) => [d])
       .join("text")
@@ -194,7 +280,18 @@ export class OWIDTrendChart extends OWIDChart {
   }
 
  
+  /**
+   * We display a "marker" which is a vertical line gor a given year
+   * 
+   * All the dapapoints in the respective year will be highlighted with a higher radious
+   * 
+   * @param year 
+   */
   showMarker(year: any) {
+
+    /**
+     * We change the dot size accordingly
+     */
     this._mainContainer
       .selectAll("g.serie")
       .selectAll("circle.dot")
@@ -202,7 +299,10 @@ export class OWIDTrendChart extends OWIDChart {
         d.year == year ? config.dotSizeHighlighted : config.dotSizeUnhighlighted
       );
 
-      this._mainContainer
+    /**
+     * We display a new vertical line assocciated to the given year
+     */
+    this._mainContainer
       .selectAll("line.marker")
       .data([year])
       .join("line")
@@ -215,6 +315,9 @@ export class OWIDTrendChart extends OWIDChart {
       .attr("stroke-width", 1);
   }
 
+  /**
+   * We hide the markes (all dots go back to normal size and marker line is removed)
+   */
   hideMarker() {
     this._mainContainer
       .selectAll("g.serie")
@@ -230,22 +333,45 @@ export class OWIDTrendChart extends OWIDChart {
    * @param _selectedYearCallback 
    * @returns 
    */
-   selectedYearCallback(callback: Function): OWIDTrendChart | Function {
-      if (arguments.length) {
-        this._selectedYearCallback = callback;
-        return this;
-      } else {
-        return this._selectedYearCallback
-      }
+  selectedYearCallback(callback: Function): OWIDTrendChart | Function {
+    if (arguments.length) {
+      this._selectedYearCallback = callback;
+      return this;
+    } else {
+      return this._selectedYearCallback
     }
+  }
 
-  handleMouseMove(e: any): void {
+
+  /**
+   * Handles visualization behaviour when the user moves the mouse on the chart
+   * 
+   * We display a marker and a tooltip associated to the given year
+   * 
+   * @param e event associated to the mouse movement
+   * @param d data associated to the element that triggered the event
+   * @param el   DOM element of the eleemnt that triggered the event
+   */
+  handleMouseMove(e: any, d:any, el:any): void {
+
+    /**
+     * mouse coordinates are captured relative to the target (<g> main container) or to the main <div> container
+     * 
+     * We use the coordinates relative ot main container to display the tooltip <div>
+     */
     const pos_relTarget = d3.pointer(e);
-    const pos_relContainer = d3.pointer(e, this._chartContainer);
+    const pos_relContainer = d3.pointer(e, this._mainDivContainer);
 
+    /**
+     * We identifye the closest year relative to the target position
+     * and we display a marker for that year
+     */
     const selectedYear = this.getClosestYear(pos_relTarget[0]);
     this.showMarker(selectedYear);
 
+    /**
+     * For tooltip data we find the datapoint associated to the respective year for each serie (entity)
+     */
     const tooltipData = _.chain(this._seriesData)
       .map((d: { data: any[]; name: any; }) => {
         const yearRecord = d.data.find((d: { year: any; }) => d.year == selectedYear);
@@ -257,26 +383,54 @@ export class OWIDTrendChart extends OWIDChart {
       .sortBy((d: any) => -d.value)
       .value();
 
+    
     this._toolTip.show([pos_relContainer[0], this._height * 0.25], {
       year: selectedYear,
       data: tooltipData
     });
 
+    /**
+     * callback funtion is called with the selected year
+     */
     this._selectedYearCallback(selectedYear);
   }
 
-  handleMouseLeave(): void {
+  /**
+   * Handle visualization behaviour when the user moves the mouse out the cghart region
+   * 
+   * We hide marker and tooltip
+   * 
+   * @param e event associated to the mouse movement
+   * @param d data associated to the element that triggered the event
+   * @param el DOM element of the eleemnt that triggered the event
+   */
+  handleMouseLeave(e:any, d:any, el:any): void {
     this._chartContent && this._chartContent.hideMarker();
     this._toolTip.hide();
   }
 
 
+  /**
+   * Extracts from the data the collection of unique values for a given dimension (e.g. years / entityNames) 
+   * 
+   * @param dimension dimension included in the data ("year" | "entityName")
+   * @returns array with dimension values
+   */
   getDimensionValues(dimension: string): any {
     return _.chain(this._data)
       .map((d: { [x: string]: any; }) => d[dimension])
       .uniq()
       .value();
   }
+
+
+  /**
+   * We need to accomodate enough space on the left margin for the y axis ticks
+   * 
+   * We estiemate the max width of the text for all ticks values and the unit descriptor
+   * 
+   * @returns width Estimated margin space needed 
+   */
   calculateMarginLeft(): number {
     const axisScale: any = this._axisY.scale();
     const values = axisScale.ticks();
@@ -288,6 +442,14 @@ export class OWIDTrendChart extends OWIDChart {
     const maxSize = _.max(tickSizes) as number;
     return maxSize * 1.5 || 10;
   }
+
+  /**
+   * We need to accomodate enough space on the right margin for the entities labels
+   * 
+   * We estimate the max width of the text for all ticks values and the unit descriptor
+   * 
+   * @returns witdh Estimated margin space needed
+   */
   calculateMarginRight(): number {
     const entityNames = this._dimensions.entities;
 
@@ -299,6 +461,14 @@ export class OWIDTrendChart extends OWIDChart {
     return maxSize * 1.5 || 10;
   }
 
+  /**
+   * Auxiliary function that gets the size of a text given the text / fontSize and fontFace
+   * 
+   * @param text 
+   * @param fontSize 
+   * @param fontFace 
+   * @returns estinated text width
+   */
   getTextWidth(text: any, fontSize: string | number, fontFace: string): number {
     const canvas = document.createElement("canvas"),
       context = canvas.getContext("2d");
@@ -314,6 +484,10 @@ export class OWIDTrendChart extends OWIDChart {
     return textWidth as number;
 
   }
+
+  /**
+   * We show a grid (lines on the chart) associated to each X tick 
+   */
   showGridX() {
     const axisScale: any = this._axisX.scale()
     const gridValues = axisScale.ticks();
@@ -334,6 +508,9 @@ export class OWIDTrendChart extends OWIDChart {
       .attr("stroke", "lightgrey");
   }
 
+  /**
+   * We show a grid (lines on the chart) associated to each Y tick 
+   */
   showGridY() {
     const axisScale: any = this._axisY.scale();
     const gridValues = axisScale.ticks();
@@ -355,6 +532,12 @@ export class OWIDTrendChart extends OWIDChart {
       .attr("stroke", "lightgrey");
   }
 
+  /**
+   * Given an x position on the chart, we estimate the closest year asociated to such position
+   * 
+   * @param posX
+   * @returns 
+   */
   getClosestYear(posX: number): number {
     const closestYear = this._dimensions.years.find(
       (d: number) => d == Math.round(this._scaleX.invert(posX))
@@ -363,8 +546,13 @@ export class OWIDTrendChart extends OWIDChart {
     return closestYear;
   }
 
+  /**
+   * Gets the chart <div> element
+   * 
+   * @returns <div> element
+   */
   node() {
-    return this._chartContainer.node();
+    return this._mainDivContainer.node();
   }
 }
 

@@ -6,6 +6,15 @@ import { baseCSS } from './OWIDChartCSS';
 import {
   config
 } from './OWIDChartConfig';
+
+/**
+ * Base class for chart components
+ * 
+ * This object will create a <div> DOM element that contains the 
+ * <div class="chartDivContainer">
+ *  <svg class="svgContainer">
+ *    <g class="maincontainer">
+ */
 export class OWIDChart {
   protected _data: [] = [];
 
@@ -27,7 +36,7 @@ export class OWIDChart {
   protected _dimensions: { years: any; entities: any; };
   protected _scaleColor: d3.ScaleOrdinal<string, string, never>;
 
-  protected _chartContainer: d3.Selection<any, undefined, null, undefined>;
+  protected _mainDivContainer: d3.Selection<any, undefined, null, undefined>;
   protected _mainContainer: d3.Selection<any, undefined, null, undefined> ;
 
   protected _chartSVG: any;
@@ -71,17 +80,13 @@ export class OWIDChart {
     this._scaleColor = d3.scaleOrdinal(config.colorScheme);
 
 
-    this._chartContainer = d3
+    this._mainDivContainer = d3
       .create("div")
-      .attr("class", "chartContainer")
+      .attr("class", "chart container")
       .attr("style", "position: relative; clear: both;");
 
-    this._chartSVG = this._chartContainer
+    this._chartSVG = this._mainDivContainer
       .append("svg");
-
-    /*this._mainContainer = this._chartSVG
-      .append("g")
-      .attr("class", "container")*/
 
     this._mainContainer = this._chartSVG.append("g")
 
@@ -92,7 +97,7 @@ export class OWIDChart {
 
   setupSVGElements(): void {
     this._chartSVG
-      .attr("class", this._className)
+      .attr("class", `chart container ${this._className}`)
       .attr("fill", "currentColor")
       .attr("font-family", "system-ui, sans-serif")
       .attr("font-size", 10)
@@ -115,10 +120,7 @@ export class OWIDChart {
 
     // If it does not already exists, we add a <g> element that will be the main container
     this._mainContainer
-    /*= this._chartSVG.selectAll("g.container")
-      .data([null])  // we will use D3 data joins to create a single instance of the element
-      .join("g")*/
-      .attr("class", "container")
+      .attr("class", "chart main container")
       .attr("transform", `translate(${this._marginLeft}, ${this._marginTop})`)
       .call((g:any) =>
         g
@@ -169,14 +171,14 @@ export class OWIDChart {
       .attr("transform", `translate(${this._marginLeft}, ${this._marginTop})`);
 
     this._chartSVG
-      .select("g.container")
+      .select("g.main.container")
       .select("rect.backgroundLayer")
       .attr("width", this._width)
       .attr("height", this._height);
 
 
     this._chartSVG
-      .select("g.container")
+      .select("g.main.container")
       .select("g.axis.x")
       .attr("transform", `translate(${0}, ${this._height})`)
 
@@ -187,17 +189,16 @@ export class OWIDChart {
 
 
     // Applies new left margin to our chart main <g> container
-    this._chartContainer.select("svg")
+    this._chartSVG
       .select("g.container")
       .attr("transform", `translate(${this._marginLeft}, ${this._marginTop})`);
 
-    this._chartContainer.select("svg")
-      .select("g.container")
+    this._mainContainer
       .select("rect.backgroundLayer")
       .attr("width", this._width)
       .attr("height", this._height);
 
-    this._chartContainer.select("svg")
+    this._chartSVG
       .select("g.axis.x")
       .attr("transform", `translate(${0}, ${this._height})`)
 
@@ -317,7 +318,7 @@ export class OWIDChart {
 
 
   node() {
-    return this._chartContainer.node();
+    return this._mainDivContainer.node();
   }
 
 

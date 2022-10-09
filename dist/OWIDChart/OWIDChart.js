@@ -2,6 +2,14 @@ import * as d3 from 'd3';
 import * as _ from 'lodash';
 import { baseCSS } from './OWIDChartCSS';
 import { config } from './OWIDChartConfig';
+/**
+ * Base class for chart components
+ *
+ * This object will create a <div> DOM element that contains the
+ * <div class="chartDivContainer">
+ *  <svg class="svgContainer">
+ *    <g class="maincontainer">
+ */
 export class OWIDChart {
     _data = [];
     _marginTop = config.marginTop;
@@ -18,7 +26,7 @@ export class OWIDChart {
     _valuesRange;
     _dimensions;
     _scaleColor;
-    _chartContainer;
+    _mainDivContainer;
     _mainContainer;
     _chartSVG;
     _toolTip;
@@ -48,22 +56,19 @@ export class OWIDChart {
             entities: (options && options.enitites) || this.getDimensionValues("entityName")
         };
         this._scaleColor = d3.scaleOrdinal(config.colorScheme);
-        this._chartContainer = d3
+        this._mainDivContainer = d3
             .create("div")
-            .attr("class", "chartContainer")
+            .attr("class", "chart container")
             .attr("style", "position: relative; clear: both;");
-        this._chartSVG = this._chartContainer
+        this._chartSVG = this._mainDivContainer
             .append("svg");
-        /*this._mainContainer = this._chartSVG
-          .append("g")
-          .attr("class", "container")*/
         this._mainContainer = this._chartSVG.append("g");
         this.setupSVGElements();
         this.baseStartupSettings();
     }
     setupSVGElements() {
         this._chartSVG
-            .attr("class", this._className)
+            .attr("class", `chart container ${this._className}`)
             .attr("fill", "currentColor")
             .attr("font-family", "system-ui, sans-serif")
             .attr("font-size", 10)
@@ -82,10 +87,7 @@ export class OWIDChart {
         );*/
         // If it does not already exists, we add a <g> element that will be the main container
         this._mainContainer
-            /*= this._chartSVG.selectAll("g.container")
-              .data([null])  // we will use D3 data joins to create a single instance of the element
-              .join("g")*/
-            .attr("class", "container")
+            .attr("class", "chart main container")
             .attr("transform", `translate(${this._marginLeft}, ${this._marginTop})`)
             .call((g) => g
             .append("rect")
@@ -121,27 +123,26 @@ export class OWIDChart {
             .select("g.container")
             .attr("transform", `translate(${this._marginLeft}, ${this._marginTop})`);
         this._chartSVG
-            .select("g.container")
+            .select("g.main.container")
             .select("rect.backgroundLayer")
             .attr("width", this._width)
             .attr("height", this._height);
         this._chartSVG
-            .select("g.container")
+            .select("g.main.container")
             .select("g.axis.x")
             .attr("transform", `translate(${0}, ${this._height})`);
         // Redefine main visialization height / width according to current total heigh/width and margins
         this._height = this._heightTotal - this._marginBottom - this._marginTop;
         this._width = this._widthTotal - this._marginLeft - this._marginRight;
         // Applies new left margin to our chart main <g> container
-        this._chartContainer.select("svg")
+        this._chartSVG
             .select("g.container")
             .attr("transform", `translate(${this._marginLeft}, ${this._marginTop})`);
-        this._chartContainer.select("svg")
-            .select("g.container")
+        this._mainContainer
             .select("rect.backgroundLayer")
             .attr("width", this._width)
             .attr("height", this._height);
-        this._chartContainer.select("svg")
+        this._chartSVG
             .select("g.axis.x")
             .attr("transform", `translate(${0}, ${this._height})`);
     }
@@ -246,7 +247,7 @@ export class OWIDChart {
     render() {
     }
     node() {
-        return this._chartContainer.node();
+        return this._mainDivContainer.node();
     }
     css() {
         return baseCSS;

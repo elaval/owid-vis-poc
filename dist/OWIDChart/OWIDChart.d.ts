@@ -1,4 +1,12 @@
 import * as d3 from 'd3';
+/**
+ * Base class for chart components
+ *
+ * This object will create a <div> DOM element that contains the
+ * <div class="chartDivContainer">
+ *  <svg class="svgContainer">
+ *    <g class="maincontainer">
+ */
 export declare class OWIDChart {
     protected _data: [];
     protected _marginTop: number;
@@ -18,7 +26,7 @@ export declare class OWIDChart {
         entities: any;
     };
     protected _scaleColor: d3.ScaleOrdinal<string, string, never>;
-    protected _chartContainer: d3.Selection<any, undefined, null, undefined>;
+    protected _mainDivContainer: d3.Selection<any, undefined, null, undefined>;
     protected _mainContainer: d3.Selection<any, undefined, null, undefined>;
     protected _chartSVG: any;
     protected _toolTip: any;

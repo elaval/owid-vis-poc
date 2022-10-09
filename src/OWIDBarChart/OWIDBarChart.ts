@@ -36,7 +36,7 @@ export class OWIDBarChart extends OWIDChart {
     this._marginBottom = config.marginBottom;
 
     this._toolTip = new OWIDBarChartTooltip({ colorScale: this._colorScale, containerWidth: this._width });
-    this._chartContainer.node().appendChild(this._toolTip.render().node());
+    this._mainDivContainer.node().appendChild(this._toolTip.render().node());
 
     // Create X/Y scales and axis
     this._scaleX = d3.scaleLinear();
@@ -119,7 +119,7 @@ export class OWIDBarChart extends OWIDChart {
 
   render() {
     // Main container is the <g> element where we will displayi our chart
-    const mainContainer = this._chartContainer.select("svg").select("g.container")
+    const mainContainer = this._mainDivContainer.select("svg").select("g.container")
 
     /** render x/y axes */
     mainContainer.select("g.axis.x").call(this._axisX as any);
@@ -163,7 +163,7 @@ export class OWIDBarChart extends OWIDChart {
     .on("mouseleave", () => this.handleMouseLeave());
 
     // Add <style> with CSS local to our chart container
-    this._chartContainer.selectAll("style")
+    this._mainDivContainer.selectAll("style")
     .data([null])
     .join("style")
     .text(inlineCSS);
@@ -281,7 +281,7 @@ export class OWIDBarChart extends OWIDChart {
   }
 
   node() {
-    return this._chartContainer.node();
+    return this._mainDivContainer.node();
   }
 
 
