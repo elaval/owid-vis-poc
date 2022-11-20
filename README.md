@@ -21,7 +21,7 @@ My idea is that we would develop a javascript library that will be distributed v
 
 <pre>
 
-  // Let's assume thet we have already retreived the data for a specific variable (e.g. Life Expectancy)
+  // Let's assume thet we have already retreived the data for a specific varaible (e.g. Life Expectancy)
   const data = [
     {entityName: "United Kingdom", year: 1990, value:75.7},
     ...
