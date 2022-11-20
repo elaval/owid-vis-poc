@@ -8,4 +8,3 @@ export const inlineCSS = `
 
 
 `;
-//# sourceMappingURL=OWIDBarChartCSS.js.map

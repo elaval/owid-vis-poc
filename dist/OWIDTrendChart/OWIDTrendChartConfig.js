@@ -5,4 +5,3 @@ export const config = {
     dotSizeUnhighlighted: 2,
     dotSizeHighlighted: 4,
 };
-//# sourceMappingURL=OWIDTrendChartConfig.js.map

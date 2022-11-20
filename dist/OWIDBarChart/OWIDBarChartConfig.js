@@ -8,4 +8,3 @@ export const config = {
     // Fontsize for values text in bars
     valueFontSize: 16,
 };
-//# sourceMappingURL=OWIDBarChartConfig.js.map

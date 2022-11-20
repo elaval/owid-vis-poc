@@ -211,4 +211,3 @@ export class OWIDMap extends OWIDChart {
         return this._mainDivContainer.node();
     }
 }
-//# sourceMappingURL=OWIDMap.js.map

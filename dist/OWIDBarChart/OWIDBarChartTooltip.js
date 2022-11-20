@@ -89,4 +89,3 @@ export class OWIDBarChartTooltip {
         this.tooltipContainer.style("display", "none");
     }
 }
-//# sourceMappingURL=OWIDBarChartTooltip.js.map

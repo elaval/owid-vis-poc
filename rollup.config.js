@@ -5,7 +5,6 @@ import json from "@rollup/plugin-json";
 import node from "@rollup/plugin-node-resolve";
 import * as meta from "./package.json";
 import typescript from "@rollup/plugin-typescript";
-import postcss from 'rollup-plugin-postcss'
 
 const filename = meta.name.split("/").pop();
 
@@ -56,11 +55,7 @@ export default [
       paths: {d3: d3Path}
     },
     plugins: [
-      postcss({
-        plugins: []
-      }),
       ...config.plugins,
-
       terser({
         output: {
           preamble: config.output.banner

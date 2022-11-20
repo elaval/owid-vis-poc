@@ -7,4 +7,3 @@ export declare function barChart(data: any, options: {
 export declare function map(data: any, options: {
     type: any;
 }): any;
-export { default as Button } from './OWIDTimeLine';

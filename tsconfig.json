@@ -1,13 +1,5 @@
 {
   "compilerOptions": {
-    "sourceMap": true,
-    "esModuleInterop": true,    
-    "skipLibCheck": true,
-
-
-
-    "allowSyntheticDefaultImports": true,
-    "jsx": "react",
     "target": "esnext",
     "module": "esnext",
     "lib": ["esnext", "dom"],
