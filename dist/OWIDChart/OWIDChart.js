@@ -267,3 +267,4 @@ export class OWIDChart {
         return baseCSS;
     }
 }
+//# sourceMappingURL=OWIDChart.js.map

@@ -434,3 +434,4 @@ export class OWIDTrendChart extends OWIDChart {
         return this._mainDivContainer.node();
     }
 }
+//# sourceMappingURL=OWIDTrendChart.js.map

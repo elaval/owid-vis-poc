@@ -10,3 +10,5 @@ export function barChart(data, options) {
 export function map(data, options) {
     return new OWIDMap(data, options);
 }
+export { default as Button } from './OWIDTimeLine';
+//# sourceMappingURL=index.js.map

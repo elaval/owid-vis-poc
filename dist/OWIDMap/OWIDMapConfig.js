@@ -5,3 +5,4 @@ export const config = {
     strokeWidthUnhighligthed: 1,
     strokeWidthHighligthed: 2,
 };
+//# sourceMappingURL=OWIDMapConfig.js.map

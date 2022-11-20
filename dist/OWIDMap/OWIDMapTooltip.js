@@ -57,3 +57,4 @@ export class OWIDMapTooltip {
         this.toolTip.style("display", "none");
     }
 }
+//# sourceMappingURL=OWIDMapTooltip.js.map

@@ -10,3 +10,4 @@ export const config = {
     widthTotal: 800,
     colorScheme: schemeCategory10
 };
+//# sourceMappingURL=OWIDChartConfig.js.map

@@ -87,3 +87,4 @@ export class OWIDTrendChartTooltip {
         this.toolTip.style("display", "none");
     }
 }
+//# sourceMappingURL=OWIDTrendChartTooltip.js.map

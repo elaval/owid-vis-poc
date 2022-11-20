@@ -227,3 +227,4 @@ export class OWIDBarChart extends OWIDChart {
         return this._mainDivContainer.node();
     }
 }
+//# sourceMappingURL=OWIDBarChart.js.map
